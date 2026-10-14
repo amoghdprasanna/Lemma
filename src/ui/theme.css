@@ -1648,6 +1648,11 @@
     flex: none;
   }
 
+  /* SVG transforms repaint on the main thread: keep that work inside the mascot. */
+  .mascot {
+    contain: layout paint style;
+  }
+
   .oswald svg {
     width: 3.7rem;
     height: 3.7rem;
@@ -1682,9 +1687,17 @@
     transition: rotate 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
+  /*
+   * Idle loops play a few cycles and then rest, so an open panel costs no CPU
+   * while you write; hovering the mascots starts them again.
+   */
   .mascot[data-motion='idle'] .m-body,
   .mascot[data-motion='sleep'] .m-body {
-    animation: m-breathe 3.6s ease-in-out infinite;
+    animation: m-breathe 3.6s ease-in-out 3;
+  }
+
+  .mascots:hover :is(.m-body, .o-legs, .w-tail) {
+    animation-iteration-count: infinite;
   }
 
   .mascot[data-motion='sleep'] .m-body {
@@ -1826,7 +1839,7 @@
   .o-legs {
     transform-box: fill-box;
     transform-origin: 50% 0;
-    animation: o-wiggle 1.4s ease-in-out infinite alternate;
+    animation: o-wiggle 1.4s ease-in-out 6 alternate;
   }
 
   .o-hat {
@@ -1854,7 +1867,7 @@
   /* Weenie: wags, barks with a hop, sniffs while Lemma thinks. */
   .w-tail {
     transform-box: view-box;
-    animation: w-wag 0.9s ease-in-out infinite alternate;
+    animation: w-wag 0.9s ease-in-out 8 alternate;
   }
 
   .weenie:hover .w-tail,

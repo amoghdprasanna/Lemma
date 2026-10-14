@@ -23,6 +23,11 @@ All notable changes to this project are documented here. The format follows [Kee
 - ADR-0007 (topic questions).
 - Acceptance fixtures: a clean REVTeX quant-ph paper (zero diagnostics), a Letter without headings and a custom-named theory paper (no structure warnings in Adaptive mode); Playwright tests against a mock Overleaf page running real CodeMirror 6.
 
+### Fixed
+
+- **Idle CPU**: the mascots' breathing, tentacle wiggle and tail wag looped forever, costing up to a quarter of a CPU core while the panel sat open on a long paper. They now play a few cycles and rest (hovering the mascots starts them again), and the mascot's repaints are contained. Idle use on a 170 KB paper fell from about 25% to 2% of a core.
+- **On-device AI after reopening the panel**: the status bar said "AI on" but answers fell back to the notes until AI was turned on again. The model session now reopens on the first question when the model is already downloaded; opening the panel alone still never loads the model.
+
 ### Changed
 
 - Learning card titles in single quotes no longer show the quotes.
