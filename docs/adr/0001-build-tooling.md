@@ -32,6 +32,10 @@ Verified on 2026-10-13:
 - **Plasmo:** heavier and more opinionated; we do not need its messaging or storage abstractions.
 - **pnpm:** fine, but not installed on the primary dev machine; npm avoids a global install.
 
+## Permissions
+
+`sidePanel`, `storage`, and the host permission `https://*.overleaf.com/*`, which the side panel needs to read which Overleaf project a tab shows. Nothing else. (Added during Phases 1–5; Phase 0 had only `sidePanel`.)
+
 ## Consequences
 
 - WXT is pre-1.0, so versions are pinned exactly and upgraded deliberately with the e2e suite as a gate.

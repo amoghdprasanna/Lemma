@@ -8,5 +8,5 @@ One file per non-obvious decision. Copy `template.md`, take the next number, and
 | [0002](0002-overleaf-editor-access.md) | Overleaf editor access             | Accepted |
 | [0003](0003-no-content-generation.md)  | No content generation              | Accepted |
 | [0004](0004-on-device-only-ai.md)      | On-device-only AI with Gemini Nano | Accepted |
-
-Planned: parser choice (unified-latex), multi-file strategy.
+| [0005](0005-multi-file-projects.md)    | Multi-file projects                | Accepted |
+| [0006](0006-latex-parsing.md)          | LaTeX parsing                      | Accepted |

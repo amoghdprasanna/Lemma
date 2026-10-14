@@ -36,4 +36,6 @@ Overleaf's page CSP (`script-src 'nonce-…' 'strict-dynamic'`, checked 2026-10-
 ## Consequences
 
 - We depend on an API Overleaf calls unsupported. This is mitigated by isolating it in one adapter, detecting breakage, keeping an e2e mock that mirrors the contract, and Overleaf's record of responding to extension authors.
-- Still to verify in Phase 1: mapping `docId` to a file name, behaviour in Visual Editor mode (expected to be the same CodeMirror instance), and where the compile log can be read from the DOM without a network request.
+- Verified and implemented in Phase 1: the open file's name and id come from `window.overleaf.unstable.store` (`editor.open_doc_name`, `editor.open_doc_id`, watchable), which also exposes `editor.view` as a fallback when the extension event was missed. The raw compile log is read from `pre.log-entry-content-raw` once the user opens Overleaf's logs pane (`features/pdf-preview/components/pdf-log-entry-raw-content.tsx`); it is never fetched.
+- Not yet verified on live Overleaf: Visual Editor mode (expected to be the same CodeMirror instance).
+- All Overleaf names live in `src/adapters/overleaf/selectors.ts`; the e2e suite runs against a mock page (`tests/e2e/mock-overleaf/`) that implements the same contract with real CodeMirror 6.
