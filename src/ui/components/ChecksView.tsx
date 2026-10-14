@@ -4,6 +4,7 @@ import type { Diagnostic, Severity } from '@/src/core/rules/types';
 import { useController, usePanelState } from '../context';
 import { Icon, type IconName } from '../Icon';
 import { InlineMarkdown } from '../markdown';
+import { MascotAvatar } from '../Mascot';
 import { Empty, Section, SEVERITY_LABEL } from './common';
 
 const SEVERITY_ICON: Record<Severity, IconName> = {
@@ -123,37 +124,72 @@ function DiagnosticItem({ d, openFile }: { d: Diagnostic; openFile: boolean }) {
   );
 }
 
+type Filter = 'all' | 'error' | 'warning' | 'tips';
+
+const FILTERS: { id: Filter; label: string; icon: IconName; match: (d: Diagnostic) => boolean }[] =
+  [
+    { id: 'all', label: 'All', icon: 'checks', match: () => true },
+    { id: 'error', label: 'Errors', icon: 'error', match: (d) => d.severity === 'error' },
+    { id: 'warning', label: 'Warnings', icon: 'warning', match: (d) => d.severity === 'warning' },
+    {
+      id: 'tips',
+      label: 'Tips',
+      icon: 'book',
+      match: (d) => d.severity === 'info' || d.severity === 'learn',
+    },
+  ];
+
 export function ChecksView() {
   const c = useController();
   const state = usePanelState();
+  const [filter, setFilter] = useState<Filter>('all');
   const a = state.analysis;
   if (!a) return <Empty>Waiting for the document…</Empty>;
+  const all = a.diagnostics;
   const visible = c.visibleDiagnostics();
-  const hidden = a.diagnostics.length - visible.length;
+  // Tips stay hidden until "Show tips" is on; choosing the Tips filter turns it on.
+  const active = filter === 'tips' && !state.learnMode ? 'all' : filter;
+  const shown = visible.filter(FILTERS.find((f) => f.id === active)?.match ?? (() => true));
   const byRule = new Map<string, Diagnostic[]>();
-  for (const d of visible)
+  for (const d of shown)
     if (d.fixes.length > 0) byRule.set(d.ruleId, [...(byRule.get(d.ruleId) ?? []), d]);
   const bulk = [...byRule.entries()].filter(([, ds]) => ds.length > 1);
+  const file =
+    state.editor.state === 'ready' ? (state.editor.fileName ?? 'this file') : 'this file';
+  const serious = visible.filter((d) => d.severity === 'error' || d.severity === 'warning').length;
 
   return (
     <div className="checks">
       <div className="view-head">
-        <p className="summary" aria-live="polite">
-          {visible.length === 0
-            ? 'Nothing to fix here.'
-            : `${String(visible.length)} item${visible.length === 1 ? '' : 's'}`}
-          {hidden > 0 &&
-            !state.learnMode &&
-            ` · ${String(hidden)} learning note${hidden === 1 ? '' : 's'} hidden in Write mode`}
-          {state.dismissed.length > 0 && (
-            <>
-              {' · '}
-              <button type="button" className="link" onClick={() => void c.restoreDismissed()}>
-                show {state.dismissed.length} dismissed
+        <h2 className="view-title" aria-live="polite">
+          {serious === 0
+            ? `${file} looks good`
+            : `${String(serious)} ${serious === 1 ? 'thing' : 'things'} to look at`}
+        </h2>
+        <div className="filters" role="group" aria-label="Filter checks">
+          {FILTERS.map((f) => {
+            const n = all.filter(f.match).length;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                className="filter"
+                aria-pressed={active === f.id}
+                disabled={n === 0 && f.id !== 'all'}
+                onClick={() => {
+                  if (f.id === 'tips' && !state.learnMode) c.setLearnMode(true);
+                  setFilter(f.id);
+                }}
+              >
+                {f.id !== 'all' && (
+                  <Icon name={f.icon} className={`sev-${f.id === 'tips' ? 'learn' : f.id}`} />
+                )}
+                {f.label}
+                <span className="filter-count">{f.id === 'all' ? visible.length : n}</span>
               </button>
-            </>
-          )}
-        </p>
+            );
+          })}
+        </div>
         {bulk.length > 0 && (
           <div className="quickfixes">
             {bulk.map(([rule, ds]) => (
@@ -170,17 +206,35 @@ export function ChecksView() {
           </div>
         )}
       </div>
-      {visible.length === 0 && (
+      {shown.length === 0 && (
         <div className="all-clear">
-          <Icon name="check" />
-          <p>No errors or warnings in this file.</p>
+          <MascotAvatar size={64} expression="happy" />
+          <p className="all-clear-title">
+            {active === 'all'
+              ? 'All clear.'
+              : `No ${FILTERS.find((f) => f.id === active)?.label.toLowerCase() ?? 'items'} here.`}
+          </p>
+          <p>
+            {active === 'all'
+              ? 'Lemma checks again as you type.'
+              : 'Pick another filter to see the rest.'}
+          </p>
         </div>
       )}
       <ul className="problems">
-        {visible.map((d) => (
+        {shown.map((d) => (
           <DiagnosticItem key={d.id} d={d} openFile />
         ))}
       </ul>
+      {state.dismissed.length > 0 && (
+        <p className="footnote">
+          You marked {state.dismissed.length} {state.dismissed.length === 1 ? 'item' : 'items'} as
+          intentional.{' '}
+          <button type="button" className="link" onClick={() => void c.restoreDismissed()}>
+            Show them again
+          </button>
+        </p>
+      )}
       {a.otherFiles.length > 0 && (
         <Section title="In other files">
           <p className="muted">Open a file in Overleaf to go to these items and fix them.</p>

@@ -9,7 +9,7 @@ import { SettingsView } from './components/SettingsView';
 import { useController, usePanelState } from './context';
 import type { Tab } from './controller/controller';
 import { Icon, type IconName } from './Icon';
-import { Mascot } from './Mascot';
+import { Mascots } from './Mascot';
 
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: 'checks', label: 'Checks', icon: 'checks' },
@@ -132,7 +132,7 @@ export function App() {
   return (
     <div className="panel">
       <header className="titlebar">
-        <Mascot />
+        <Mascots />
         <div className="titlebar-text">
           <h1>Lemma</h1>
           <p className="crumb">
@@ -143,24 +143,18 @@ export function App() {
             {analysis?.scope === 'project' && <span className="crumb-scope">project</span>}
           </p>
         </div>
-        <div className="segmented" role="group" aria-label="Detail level">
-          <button
-            type="button"
-            aria-pressed={!learnMode}
-            title="Only errors and warnings"
-            onClick={() => c.setLearnMode(false)}
-          >
-            Write
-          </button>
-          <button
-            type="button"
-            aria-pressed={learnMode}
-            title="Also learning notes, with explanations expanded"
-            onClick={() => c.setLearnMode(true)}
-          >
-            Learn
-          </button>
-        </div>
+        <label className="switch" title="Also show learning tips, with explanations open">
+          <input
+            type="checkbox"
+            role="switch"
+            checked={learnMode}
+            onChange={(e) => c.setLearnMode(e.target.checked)}
+          />
+          <span className="switch-track" aria-hidden="true">
+            <span className="switch-thumb" />
+          </span>
+          <span className="switch-label">Show tips</span>
+        </label>
       </header>
       <nav className="tabs" role="tablist" aria-label="Lemma views">
         {TABS.map((t, i) => (
