@@ -5,7 +5,7 @@ import { useController, usePanelState } from '../context';
 import { Icon, type IconName } from '../Icon';
 import { InlineMarkdown } from '../markdown';
 import { MascotAvatar } from '../Mascot';
-import { Empty, Section, SEVERITY_LABEL } from './common';
+import { aiFailureText, Empty, Section, SEVERITY_LABEL } from './common';
 
 const SEVERITY_ICON: Record<Severity, IconName> = {
   error: 'error',
@@ -88,7 +88,7 @@ function DiagnosticItem({ d, openFile }: { d: Diagnostic; openFile: boolean }) {
             <p className="ai-text">
               <Icon name="sparkle" />{' '}
               {explanation.text ??
-                'No on-device explanation this time; the note above is the reference.'}
+                `${aiFailureText(explanation.failure)} The note above is the reference.`}
             </p>
           )}
           <div className="toolbar">

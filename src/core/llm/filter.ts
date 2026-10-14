@@ -23,62 +23,88 @@ const DRAFTING = [
  * Topic answers may show how a command is used (`\label{eq:x}`, `\begin{equation}`),
  * so only paper scaffolding counts as drafting there.
  */
-const TOPIC_DRAFTING = [
+const TOPIC_SCAFFOLDING = [
   /\\(?:sub)*section\*?\s*\{|\\begin\s*\{\s*(?:abstract|document)\s*\}|\\maketitle/,
-  ...PROSE_DRAFTING,
 ];
+
+/**
+ * A short quoted phrase names a wording ("avoid opening with 'In this paper, we'")
+ * rather than drafting one, so topic answers may quote it. Quotes longer than
+ * a phrase, or holding a whole sentence, are still checked. Single quotes count
+ * only at word edges, so apostrophes don't.
+ */
+const SHORT_QUOTE =
+  /["“][^"”\n.!?]{1,30}["”]|‘[^’\n.!?]{1,30}’|(?<=^|[\s(])'[^'\n.!?]{1,30}'(?![a-z])/gi;
 
 const MAX_CHARS = 900;
 const MAX_SENTENCES = 6;
 
-export type FilterResult = { ok: true; text: string } | { ok: false; reason: string };
+/**
+ * Why an answer was dropped: `malformed` (not the shape asked for), `drafted`
+ * (reads like paper text, ADR-0003) or `rambling` (longer than asked).
+ */
+export type OutputFailure = 'malformed' | 'drafted' | 'rambling';
 
-export function filterExplanation(raw: string): FilterResult {
+export type Parsed<T> =
+  { ok: true; value: T } | { ok: false; failure: OutputFailure; reason: string };
+
+const fail = (failure: OutputFailure, reason: string) => ({ ok: false, failure, reason }) as const;
+
+export function filterExplanation(raw: string): Parsed<string> {
   let text = raw.trim();
   // Accept {"explanation": "..."} from structured output.
   if (text.startsWith('{')) {
     try {
       const parsed = JSON.parse(text) as { explanation?: unknown };
-      if (typeof parsed.explanation !== 'string')
-        return { ok: false, reason: 'missing explanation' };
+      if (typeof parsed.explanation !== 'string') return fail('malformed', 'missing explanation');
       text = parsed.explanation.trim();
     } catch {
-      return { ok: false, reason: 'invalid JSON' };
+      return fail('malformed', 'invalid JSON');
     }
   }
-  return check(text, DRAFTING, MAX_CHARS, MAX_SENTENCES);
+  return check(text, { maxChars: MAX_CHARS, maxSentences: MAX_SENTENCES, drafting: DRAFTING });
 }
 
 function check(
   text: string,
-  drafting: readonly RegExp[],
-  maxChars: number,
-  maxSentences: number,
-): FilterResult {
-  if (text.length === 0) return { ok: false, reason: 'empty' };
-  if (text.length > maxChars) return { ok: false, reason: 'too long' };
+  o: {
+    maxChars: number;
+    maxSentences: number;
+    drafting: readonly RegExp[];
+    /** Checked against the text with short quotes removed. */
+    prose?: readonly RegExp[];
+  },
+): Parsed<string> {
+  if (text.length === 0) return fail('malformed', 'empty');
+  if (text.length > o.maxChars) return fail('rambling', 'too long');
   const sentences = text.split(/[.!?](?:\s|$)/).filter((s) => s.trim().length > 0);
-  if (sentences.length > maxSentences) return { ok: false, reason: 'too many sentences' };
-  for (const re of drafting)
-    if (re.test(text))
-      return { ok: false, reason: `looks like drafted content (${re.source.slice(0, 24)}…)` };
-  return { ok: true, text };
+  if (sentences.length > o.maxSentences) return fail('rambling', 'too many sentences');
+  const unquoted = text.replace(SHORT_QUOTE, '""');
+  const hit = o.drafting.find((re) => re.test(text)) ?? o.prose?.find((re) => re.test(unquoted));
+  if (hit) return fail('drafted', `looks like drafted content (${hit.source.slice(0, 24)}…)`);
+  return { ok: true, value: text };
 }
 
 export type TopicResult = { kind: 'answer'; text: string } | { kind: 'off-topic' };
 
-/** Parses {"onTopic", "answer"}; null when malformed or when the answer fails the filter. */
-export function parseTopicAnswer(raw: string): TopicResult | null {
+/** Parses {"onTopic", "answer"}; fails when malformed or when the answer fails the filter. */
+export function parseTopicAnswer(raw: string): Parsed<TopicResult> {
   let parsed: { onTopic?: unknown; answer?: unknown };
   try {
     parsed = JSON.parse(raw) as typeof parsed;
   } catch {
-    return null;
+    return fail('malformed', 'invalid JSON');
   }
-  if (parsed.onTopic === false) return { kind: 'off-topic' };
-  if (parsed.onTopic !== true || typeof parsed.answer !== 'string') return null;
-  const r = check(parsed.answer.trim(), TOPIC_DRAFTING, 1000, 8);
-  return r.ok ? { kind: 'answer', text: r.text } : null;
+  if (parsed.onTopic === false) return { ok: true, value: { kind: 'off-topic' } };
+  if (parsed.onTopic !== true || typeof parsed.answer !== 'string')
+    return fail('malformed', 'missing answer');
+  const r = check(parsed.answer.trim(), {
+    maxChars: 1000,
+    maxSentences: 8,
+    drafting: TOPIC_SCAFFOLDING,
+    prose: PROSE_DRAFTING,
+  });
+  return r.ok ? { ok: true, value: { kind: 'answer', text: r.value } } : r;
 }
 
 export function parseRoleSuggestion(raw: string): { roles: Role[]; confidence: number } | null {

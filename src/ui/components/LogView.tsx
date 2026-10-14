@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useController, usePanelState } from '../context';
 import { Icon } from '../Icon';
-import { Empty } from './common';
+import { aiFailureText, Empty } from './common';
 
 export function LogView() {
   const c = useController();
@@ -77,7 +77,7 @@ export function LogView() {
                   <Icon name="sparkle" />{' '}
                   {explanation.busy
                     ? 'Thinking on this device…'
-                    : (explanation.text ?? 'No on-device explanation this time.')}
+                    : (explanation.text ?? aiFailureText(explanation.failure))}
                 </p>
               )}
               <div className="toolbar">

@@ -25,6 +25,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **Ask Lemma and "Explain for my text" saw only part of each note**: the note's first paragraph was sent twice and the rest cut off at 700 characters. Each matching card is now sent whole, once.
+- **On-device answers vanished without a reason**: when the model was not running, the prompt was too long, the answer was garbled or the filter hid it, Lemma only said "No on-device answer this time". It now says which.
+- **Writing advice was filtered out**: answers to "what goes in an abstract?" that quoted a phrase such as "we show that" were dropped as drafted text. Ask answers may now quote short phrases; quoted sentences are still dropped.
 - **Idle CPU**: the mascots' breathing, tentacle wiggle and tail wag looped forever, costing up to a quarter of a CPU core while the panel sat open on a long paper. They now play a few cycles and rest (hovering the mascots starts them again), and the mascot's repaints are contained. Idle use on a 170 KB paper fell from about 25% to 2% of a core.
 - **On-device AI after reopening the panel**: the status bar said "AI on" but answers fell back to the notes until AI was turned on again. The model session now reopens on the first question when the model is already downloaded; opening the panel alone still never loads the model.
 

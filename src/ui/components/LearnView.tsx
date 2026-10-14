@@ -5,6 +5,7 @@ import { useController, usePanelState } from '../context';
 import type { TopicState } from '../controller/controller';
 import { Icon } from '../Icon';
 import { Markdown } from '../markdown';
+import { aiFailureText } from './common';
 import { MascotAvatar } from '../Mascot';
 
 const STATUS_LABEL: Record<CardStatus, string> = {
@@ -68,9 +69,11 @@ function Answer({ turn, aiOn }: { turn: TopicState; aiOn: boolean }) {
       return (
         <p className="answer">
           {turn.cardIds.length === 0
-            ? 'I have no notes on that. Try other words.'
+            ? aiOn
+              ? `${aiFailureText(turn.failure)} I have no notes on that either. Try other words.`
+              : 'I have no notes on that. Try other words.'
             : aiOn
-              ? 'No on-device answer this time. These notes cover it:'
+              ? `${aiFailureText(turn.failure)} These notes cover it:`
               : 'These notes cover it:'}
         </p>
       );
