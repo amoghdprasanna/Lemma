@@ -1,0 +1,6 @@
+.output/
+.wxt/
+coverage/
+playwright-report/
+test-results/
+package-lock.json

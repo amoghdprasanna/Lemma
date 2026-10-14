@@ -147,3 +147,13 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# --- Lemma ---
+.wxt/
+playwright-report/
+test-results/
+web-ext.config.ts
+.DS_Store
+
+# Real papers for local manual testing only. Never commit unpublished work.
+tests/private/
