@@ -55,12 +55,12 @@ describe('geminiNano', () => {
     expect(opts.initialPrompts[0]?.content).toMatch(/Never write, rewrite/);
   });
 
-  it('returns nothing before it is enabled', async () => {
+  it('says it is not ready before it is enabled', async () => {
     installLanguageModel('{"explanation":"ok"}');
     const llm = geminiNano();
     await expect(
       llm.explain({ title: 't', card: 'c', message: 'm', snippet: 's' }),
-    ).resolves.toBeNull();
+    ).resolves.toEqual({ ok: false, failure: 'not-ready' });
   });
 
   it('reopens the session on first use when the model is already downloaded', async () => {
@@ -76,13 +76,16 @@ describe('geminiNano', () => {
     expect(session.prompt).toHaveBeenCalledTimes(2);
   });
 
-  it('returns nothing and retries later when opening the session fails', async () => {
+  it('reports an error and retries later when opening the session fails', async () => {
     const { lm } = installLanguageModel('{"explanation":"ok"}', { availability: 'available' });
     lm.create.mockImplementationOnce(() => Promise.reject(new Error('out of memory')));
     const llm = geminiNano();
     const input = { title: 't', card: 'c', message: 'm', snippet: 's' };
-    await expect(llm.explain(input)).resolves.toBeNull();
-    await expect(llm.explain({ ...input, snippet: 's2' })).resolves.toBe('ok');
+    await expect(llm.explain(input)).resolves.toEqual({ ok: false, failure: 'error' });
+    await expect(llm.explain({ ...input, snippet: 's2' })).resolves.toEqual({
+      ok: true,
+      value: 'ok',
+    });
     expect(lm.create).toHaveBeenCalledTimes(2);
   });
 
@@ -98,7 +101,10 @@ describe('geminiNano', () => {
       message: 'm',
       snippet: '\\label{x}\\caption{y}',
     };
-    await expect(llm.explain(input)).resolves.toBe('Your label comes before the caption.');
+    await expect(llm.explain(input)).resolves.toEqual({
+      ok: true,
+      value: 'Your label comes before the caption.',
+    });
     await llm.explain(input);
     expect(session.prompt).toHaveBeenCalledTimes(1);
     expect(prompts[0]?.options).toMatchObject({
@@ -113,8 +119,11 @@ describe('geminiNano', () => {
     await llm.enable(() => undefined);
     await expect(
       llm.explain({ title: 't', card: 'c', message: 'm', snippet: 's' }),
-    ).resolves.toBeNull();
-    await expect(llm.explainLogEntry({ message: 'x', curated: null })).resolves.toBeNull();
+    ).resolves.toMatchObject({ ok: false, failure: 'drafted' });
+    await expect(llm.explainLogEntry({ message: 'x', curated: null })).resolves.toMatchObject({
+      ok: false,
+      failure: 'drafted',
+    });
     await expect(llm.suggestRoles({ heading: 'h', excerpt: 'e' })).resolves.toBeNull();
   });
 
@@ -138,7 +147,10 @@ describe('geminiNano', () => {
         question: 'When should I use eqref?',
         notes: [{ title: 'Why \\eqref', text: 'It prints (3).' }],
       }),
-    ).resolves.toEqual({ kind: 'answer', text: 'Use \\eqref so the number gets parentheses.' });
+    ).resolves.toEqual({
+      ok: true,
+      value: { kind: 'answer', text: 'Use \\eqref so the number gets parentheses.' },
+    });
     expect(prompts[0]?.input).toContain('It prints (3).');
     expect(prompts[0]?.options).toMatchObject({
       responseConstraint: { required: ['onTopic', 'answer'] },
@@ -151,7 +163,7 @@ describe('geminiNano', () => {
     await llm.enable(() => undefined);
     await expect(
       llm.explain({ title: 't', card: 'c'.repeat(800), message: 'm', snippet: 's' }),
-    ).resolves.toBeNull();
+    ).resolves.toEqual({ ok: false, failure: 'overflow' });
     expect(session.prompt).not.toHaveBeenCalled();
   });
 });

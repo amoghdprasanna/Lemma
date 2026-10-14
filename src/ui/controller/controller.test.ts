@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fakeLlm } from '@/src/adapters/llm/fake';
 import { memoryStorage } from '@/src/adapters/storage/storage';
+import { findCard } from '@/src/core/knowledge/cards';
 import { defaultProfile } from '@/src/core/profiles/registry';
 import type {
   ApplyResult,
@@ -236,6 +237,7 @@ describe('PanelController', () => {
     expect(c.getState().ai.explanations[d.id]).toEqual({
       text: 'Use \\eqref for equations.',
       busy: false,
+      failure: null,
     });
   });
 
@@ -247,7 +249,7 @@ describe('PanelController', () => {
     const d = c.getState().analysis?.diagnostics[0];
     if (!d) throw new Error('no diagnostic');
     await c.explain(d);
-    expect(c.getState().ai.explanations[d.id]?.text).toBeNull();
+    expect(c.getState().ai.explanations[d.id]).toMatchObject({ text: null, failure: 'drafted' });
   });
 
   it('answers topic questions from the notes, with or without the model', async () => {
@@ -261,6 +263,29 @@ describe('PanelController', () => {
     expect(c.getState().ai.chat.at(-1)).toMatchObject({
       status: 'answered',
       text: 'Use \\eqref for equations.',
+    });
+  });
+
+  it('sends each matching note whole, once', async () => {
+    const { c, llm } = await setup(DOC, fakeLlm({ availability: 'available' }));
+    await c.askTopic('When should I use \\eqref?');
+    const notes = llm.topicInputs.at(-1)?.notes ?? [];
+    expect(notes[0]?.text).toBe(findCard('eqref')?.body);
+  });
+
+  it('says why the model gave no answer', async () => {
+    const { c } = await setup(
+      DOC,
+      fakeLlm({
+        availability: 'available',
+        topic: '{"onTopic":true,"answer":"Here is a revised abstract: We study…"}',
+      }),
+    );
+    await c.askTopic('When should I use \\eqref?');
+    expect(c.getState().ai.chat.at(-1)).toMatchObject({
+      status: 'notes-only',
+      failure: 'drafted',
+      cardIds: ['eqref'],
     });
   });
 

@@ -1,5 +1,5 @@
 import { filterExplanation, parseTopicAnswer } from '@/src/core/llm/filter';
-import type { LlmAvailability, LlmPort, RoleSuggestion } from '@/src/ports/llm';
+import type { LlmAvailability, LlmPort, RoleSuggestion, TopicInput } from '@/src/ports/llm';
 
 /** Deterministic LlmPort for tests: scripted availability and answers, same filter as the real one. */
 export function fakeLlm(
@@ -10,11 +10,13 @@ export function fakeLlm(
     /** Raw model output for topic questions, as JSON. */
     topic?: string;
   } = {},
-): LlmPort & { calls: string[] } {
+): LlmPort & { calls: string[]; topicInputs: TopicInput[] } {
   let state: LlmAvailability = script.availability ?? 'downloadable';
   const calls: string[] = [];
+  const topicInputs: TopicInput[] = [];
   return {
     calls,
+    topicInputs,
     availability: () => Promise.resolve(state),
     enable(onProgress) {
       calls.push('enable');
@@ -29,15 +31,15 @@ export function fakeLlm(
     },
     explain(input) {
       calls.push(`explain:${input.title}`);
-      const r = filterExplanation(script.explanation ?? `About ${input.title}.`);
-      return Promise.resolve(r.ok ? r.text : null);
+      return Promise.resolve(filterExplanation(script.explanation ?? `About ${input.title}.`));
     },
     explainLogEntry(input) {
       calls.push(`log:${input.message}`);
-      return Promise.resolve('The log says a command is unknown.');
+      return Promise.resolve({ ok: true, value: 'The log says a command is unknown.' } as const);
     },
     askTopic(input) {
       calls.push(`topic:${input.question}`);
+      topicInputs.push(input);
       return Promise.resolve(
         parseTopicAnswer(
           script.topic ?? '{"onTopic":true,"answer":"Use \\\\eqref for equations."}',

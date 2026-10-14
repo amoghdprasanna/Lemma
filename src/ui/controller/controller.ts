@@ -2,7 +2,7 @@ import { parseLog, type LogEntry } from '@/src/core/compile-log/parse';
 import { checkFix } from '@/src/core/fixes/guard';
 import { diffEdits, type DiffHunk } from '@/src/core/fixes/diff';
 import { normalizeEdits, type Fix, type TextEdit } from '@/src/core/fixes/text-edit';
-import { cardSummary, findCard } from '@/src/core/knowledge/cards';
+import { findCard } from '@/src/core/knowledge/cards';
 import { relatedCards } from '@/src/core/knowledge/search';
 import { isDraftingRequest, MAX_QUESTION } from '@/src/core/llm/prompts';
 import type { ProjectAnalysis, ProjectFile } from '@/src/core/project/project';
@@ -14,7 +14,13 @@ import type { DocSettings } from '@/src/core/settings/types';
 import type { StructureUnit } from '@/src/core/structure/infer';
 import type { Role } from '@/src/core/structure/roles';
 import type { EditorPort, EditorSnapshot, EditorStatus } from '@/src/ports/editor';
-import type { LlmAvailability, LlmPort, RoleSuggestion } from '@/src/ports/llm';
+import type {
+  LlmAvailability,
+  LlmFailure,
+  LlmPort,
+  LlmResult,
+  RoleSuggestion,
+} from '@/src/ports/llm';
 import type { StoragePort } from '@/src/ports/storage';
 import type { Analyzer } from '@/src/worker/protocol';
 
@@ -44,13 +50,28 @@ export interface TopicState {
    */
   status: 'busy' | 'answered' | 'off-topic' | 'refused' | 'notes-only';
   text: string | null;
+  /** Why the model gave no answer, when it was asked and didn't. */
+  failure: LlmFailure | null;
 }
+
+/** An on-device explanation of a check or a log entry. */
+export interface AiText {
+  text: string | null;
+  busy: boolean;
+  /** Why there is no text, when the model was asked and gave none. */
+  failure: LlmFailure | null;
+}
+
+const aiText = (r: LlmResult<string>): AiText =>
+  r.ok
+    ? { text: r.value, busy: false, failure: null }
+    : { text: null, busy: false, failure: r.failure };
 
 export interface AiState {
   availability: LlmAvailability;
   progress: number | null;
   error: string | null;
-  explanations: Record<string, { text: string | null; busy: boolean }>;
+  explanations: Record<string, AiText>;
   roleSuggestions: Record<string, { suggestion: RoleSuggestion | null; busy: boolean }>;
   /** The Learn tab's chat, oldest first. Lives as long as the panel. */
   chat: TopicState[];
@@ -591,17 +612,17 @@ export class PanelController {
     const snapshot = this.state.snapshot;
     if (!llm || this.state.ai.availability !== 'available' || !snapshot) return;
     const card = findCard(d.cardId);
-    const set = (v: { text: string | null; busy: boolean }) => {
+    const set = (v: AiText) => {
       this.setAi({ explanations: { ...this.state.ai.explanations, [d.id]: v } });
     };
-    set({ text: null, busy: true });
-    const text = await llm.explain({
+    set({ text: null, busy: true, failure: null });
+    const result = await llm.explain({
       title: card?.title ?? d.title,
-      card: card ? `${cardSummary(card)} ${card.body.slice(0, 600)}` : '',
+      card: card?.body ?? '',
       message: d.message,
       snippet: snapshot.text.slice(Math.max(0, d.span.start - 200), d.span.end + 200),
     });
-    set({ text, busy: false });
+    set(aiText(result));
   }
 
   async suggestRoles(unit: StructureUnit): Promise<void> {
@@ -625,15 +646,18 @@ export class PanelController {
     if (!llm || !entry || this.state.ai.availability !== 'available') return;
     const key = `log:${String(index)}`;
     this.setAi({
-      explanations: { ...this.state.ai.explanations, [key]: { text: null, busy: true } },
+      explanations: {
+        ...this.state.ai.explanations,
+        [key]: { text: null, busy: true, failure: null },
+      },
     });
-    const text = await llm.explainLogEntry({
+    const result = await llm.explainLogEntry({
       message: entry.raw,
       curated: entry.translation
         ? `${entry.translation.explanation} ${entry.translation.cause}`
         : null,
     });
-    this.setAi({ explanations: { ...this.state.ai.explanations, [key]: { text, busy: false } } });
+    this.setAi({ explanations: { ...this.state.ai.explanations, [key]: aiText(result) } });
   }
 
   /**
@@ -647,7 +671,13 @@ export class PanelController {
     if (q === '') return;
     const cards = relatedCards(q);
     const id = this.nextTurnId++;
-    const base = { id, question: q, cardIds: cards.map((card) => card.id), text: null };
+    const base = {
+      id,
+      question: q,
+      cardIds: cards.map((card) => card.id),
+      text: null,
+      failure: null,
+    };
     const put = (turn: TopicState) => {
       const others = this.state.ai.chat.filter((t) => t.id !== id);
       this.setAi({ chat: [...others, turn].slice(-MAX_CHAT) });
@@ -664,18 +694,15 @@ export class PanelController {
     put({ ...base, status: 'busy' });
     const answer = await llm.askTopic({
       question: q,
-      notes: cards.map((card) => ({
-        title: card.title,
-        text: `${cardSummary(card)} ${card.body.slice(0, 600)}`,
-      })),
+      notes: cards.map((card) => ({ title: card.title, text: card.body })),
     });
     if (!this.state.ai.chat.some((t) => t.id === id)) return; // the chat was cleared meanwhile
     put(
-      answer === null
-        ? { ...base, status: 'notes-only' }
-        : answer.kind === 'off-topic'
+      !answer.ok
+        ? { ...base, status: 'notes-only', failure: answer.failure }
+        : answer.value.kind === 'off-topic'
           ? { ...base, status: 'off-topic' }
-          : { ...base, status: 'answered', text: answer.text },
+          : { ...base, status: 'answered', text: answer.value.text },
     );
   }
 

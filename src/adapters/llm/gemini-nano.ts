@@ -10,13 +10,13 @@ import {
   topicPrompt,
 } from '@/src/core/llm/prompts';
 import { hash } from '@/src/core/model/text';
-import type { LlmAvailability, LlmPort } from '@/src/ports/llm';
+import type { LlmAvailability, LlmPort, LlmResult } from '@/src/ports/llm';
 
 /**
  * LlmPort on Chrome's built-in Gemini Nano (docs/adr/0004-on-device-only-ai.md).
  * Runs in the side panel (the Prompt API is not available in workers). Every
- * answer passes the post-filter; anything rejected becomes null and the UI
- * shows the curated card instead.
+ * answer passes the post-filter; anything rejected comes back as a failure
+ * with its reason, and the UI shows the curated card instead.
  */
 const LANGUAGE: LemmaLanguageModelOptions = {
   expectedInputs: [{ type: 'text', languages: ['en'] }],
@@ -31,9 +31,10 @@ function api(): LemmaLanguageModelStatic | null {
 
 export function geminiNano(): LlmPort {
   let base: Promise<LemmaLanguageModelSession> | null = null;
-  const cache = new Map<string, string | null>();
+  /** Answers and overflows; errors are not cached, so a retry can succeed. */
+  const cache = new Map<string, LlmResult<string>>();
 
-  const remember = (key: string, value: string | null) => {
+  const remember = (key: string, value: LlmResult<string>) => {
     cache.set(key, value);
     if (cache.size > CACHE_SIZE) cache.delete(cache.keys().next().value ?? '');
     return value;
@@ -71,25 +72,27 @@ export function geminiNano(): LlmPort {
   };
 
   /** One prompt on a fresh clone of the base session, so turns never accumulate. */
-  const ask = async (prompt: string, schema: unknown): Promise<string | null> => {
+  const ask = async (prompt: string, schema: unknown): Promise<LlmResult<string>> => {
     const key = hash(prompt);
-    if (cache.has(key)) return cache.get(key) ?? null;
+    const cached = cache.get(key);
+    if (cached) return cached;
     let session: LemmaLanguageModelSession;
     try {
       const b = await baseSession();
-      if (!b) return null;
+      if (!b) return { ok: false, failure: 'not-ready' };
       session = await b.clone();
     } catch {
-      return null;
+      return { ok: false, failure: 'error' };
     }
     try {
       const window = session.contextWindow ?? Infinity;
       const used =
         (session.contextUsage ?? 0) + ((await session.measureContextUsage?.(prompt)) ?? 0);
-      if (used > window) return remember(key, null);
-      return remember(key, await session.prompt(prompt, { responseConstraint: schema }));
+      if (used > window) return remember(key, { ok: false, failure: 'overflow' });
+      const raw = await session.prompt(prompt, { responseConstraint: schema });
+      return remember(key, { ok: true, value: raw });
     } catch {
-      return null;
+      return { ok: false, failure: 'error' };
     } finally {
       session.destroy();
     }
@@ -113,23 +116,19 @@ export function geminiNano(): LlmPort {
     },
     async suggestRoles(input) {
       const raw = await ask(rolePrompt(input), ROLE_SCHEMA);
-      return raw === null ? null : parseRoleSuggestion(raw);
+      return raw.ok ? parseRoleSuggestion(raw.value) : null;
     },
     async explain(input) {
       const raw = await ask(explainPrompt(input), EXPLANATION_SCHEMA);
-      if (raw === null) return null;
-      const r = filterExplanation(raw);
-      return r.ok ? r.text : null;
+      return raw.ok ? filterExplanation(raw.value) : raw;
     },
     async explainLogEntry(input) {
       const raw = await ask(logPrompt(input), EXPLANATION_SCHEMA);
-      if (raw === null) return null;
-      const r = filterExplanation(raw);
-      return r.ok ? r.text : null;
+      return raw.ok ? filterExplanation(raw.value) : raw;
     },
     async askTopic(input) {
       const raw = await ask(topicPrompt(input), TOPIC_SCHEMA);
-      return raw === null ? null : parseTopicAnswer(raw);
+      return raw.ok ? parseTopicAnswer(raw.value) : raw;
     },
   };
 }

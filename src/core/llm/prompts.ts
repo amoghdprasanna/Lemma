@@ -24,6 +24,12 @@ export function clip(text: string, max = MAX_SNIPPET): string {
   return t.length <= max ? t : `${t.slice(0, max)} …`;
 }
 
+/**
+ * Characters of a learning card sent per note. Every card fits whole, so the
+ * model sees all of a note's facts (a test keeps new cards within it).
+ */
+export const MAX_NOTE = 1000;
+
 export function explainPrompt(i: {
   title: string;
   card: string;
@@ -32,7 +38,7 @@ export function explainPrompt(i: {
 }): string {
   return [
     `Convention: ${i.title}`,
-    `Facts (from a curated guide): ${clip(i.card, 900)}`,
+    `Facts (from a curated guide): ${clip(i.card, MAX_NOTE)}`,
     `What the checker found: ${clip(i.message, 400)}`,
     `The author's LaTeX around it: ${clip(i.snippet)}`,
     'Explain to the author, in terms of their snippet, why this matters and what kind of change would address it. Do not write replacement text for their paper.',
@@ -81,7 +87,7 @@ export function topicPrompt(i: {
 }): string {
   const notes =
     i.notes.length > 0
-      ? i.notes.map((n) => `- ${n.title}: ${clip(n.text, 700)}`).join('\n')
+      ? i.notes.map((n) => `- ${n.title}: ${clip(n.text, MAX_NOTE)}`).join('\n')
       : 'No curated note matches this question.';
   return [
     `The author asks: ${clip(i.question, MAX_QUESTION)}`,

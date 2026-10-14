@@ -16,8 +16,8 @@ Add a fourth AI task: **answering a typed question about LaTeX usage or how pape
 1. **Notes first.** `relatedCards()` (`src/core/knowledge/search.ts`) picks up to three cards by keyword overlap. They are always shown, so the box works with the model off.
 2. **Drafting requests never reach the model.** `isDraftingRequest()` refuses questions that ask Lemma to write, rewrite, polish or summarise paper text. Questions asking _how_ something is usually written are allowed.
 3. **Physics is off-topic.** The prompt asks for `{ onTopic, answer }` (JSON Schema `responseConstraint`). The model must set `onTopic: false` for physics, judging results, or drafting. The UI then says Lemma covers LaTeX and writing, not the physics.
-4. **Filtered like every answer.** `parseTopicAnswer()` drops drafted prose (shared rules with `filterExplanation`), sectioning commands, `\begin{abstract}`/`\begin{document}` and `\maketitle`. Unlike diagnostic explanations, it allows usage examples such as `\label{eq:x}` or `\begin{equation}`, because explaining a command means naming it.
-5. **Small prompts.** At most 300 characters of question and 700 per note. Nothing from the user's document is sent.
+4. **Filtered like every answer.** `parseTopicAnswer()` drops drafted prose (shared rules with `filterExplanation`), sectioning commands, `\begin{abstract}`/`\begin{document}` and `\maketitle`. Unlike diagnostic explanations, it allows usage examples such as `\label{eq:x}` or `\begin{equation}`, because explaining a command means naming it. It also allows a short quoted phrase (up to 30 characters, no sentence end) such as "avoid 'In this paper, we'", because writing advice names wordings; longer quotes and quoted sentences are still checked.
+5. **Small prompts.** At most 300 characters of question and 1000 per note, enough to send every card whole (a test keeps it so). Nothing from the user's document is sent.
 6. **Shown as text, never as an edit.** The answer is plain text with a note that on-device AI can be wrong and the cards are the checked source. As in ADR-0003, there is no path from the answer to a `TextEdit`.
 
 ## Alternatives considered
