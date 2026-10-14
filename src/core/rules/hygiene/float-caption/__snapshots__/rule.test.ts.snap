@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`hygiene/float-caption > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 3,
+    "message": "This figure has no \\caption. Captions tell readers what they are looking at, and \\label needs one to get a number.",
+    "severity": "warning",
+  },
+  {
+    "fixes": [],
+    "line": 4,
+    "message": "This table has no \\caption. Captions tell readers what they are looking at, and \\label needs one to get a number.",
+    "severity": "warning",
+  },
+]
+`;

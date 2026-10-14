@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`structure/empty-section > fail.tex 1`] = `
+[
+  {
+    "fixes": [
+      "Add a TODO prompt for this section
+  \\documentclass{article}
+  \\begin{document}
+- \\section{Results}\\label{sec:r}
++ \\section{Results}
++ % TODO: What did you find? Point to the figures, tables and theorems that show it.\\label{sec:r}
+  
+  \\section{Mystery}",
+    ],
+    "line": 3,
+    "message": ""Results" has no content yet.",
+    "severity": "warning",
+  },
+  {
+    "fixes": [],
+    "line": 5,
+    "message": ""Mystery" has no content yet.",
+    "severity": "warning",
+  },
+]
+`;

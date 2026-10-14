@@ -1,0 +1,74 @@
+{
+  "id": "builtin/prl-letter",
+  "name": "Letter (PRL style)",
+  "description": "A short Letter. Section headings are optional; extra material goes to the Supplemental Material.",
+  "sections": [
+    {
+      "id": "front",
+      "title": "Title, authors, affiliations",
+      "roles": ["front-matter"],
+      "required": true,
+      "aliases": [],
+      "purpose": "Who did the work and where."
+    },
+    {
+      "id": "abstract",
+      "title": "Abstract",
+      "roles": ["summary"],
+      "required": true,
+      "aliases": [],
+      "purpose": "A short, single-paragraph summary accessible to a broad audience."
+    },
+    {
+      "id": "intro",
+      "title": "Opening paragraphs",
+      "roles": ["motivation"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Why this matters to a broad physics audience, and what you show."
+    },
+    {
+      "id": "body",
+      "title": "Main text",
+      "roles": ["methods", "results"],
+      "required": false,
+      "aliases": [],
+      "purpose": "The setup and the key result, kept short."
+    },
+    {
+      "id": "conclusion",
+      "title": "Closing paragraph",
+      "roles": ["outlook"],
+      "required": false,
+      "aliases": [],
+      "purpose": "The take-away."
+    },
+    {
+      "id": "ack",
+      "title": "Acknowledgments",
+      "roles": ["acknowledgments"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Funding and thanks."
+    },
+    {
+      "id": "refs",
+      "title": "References",
+      "roles": ["references"],
+      "required": true,
+      "aliases": [],
+      "purpose": "The bibliography."
+    },
+    {
+      "id": "sm",
+      "title": "Supplemental Material",
+      "roles": ["supplementary"],
+      "required": false,
+      "aliases": ["supplemental material", "supplementary information"],
+      "purpose": "Derivations and data that do not fit in the Letter."
+    }
+  ],
+  "abstract": null,
+  "lengthNote": "Letters have a strict length limit. Check the current APS length guide for Physical Review Letters.",
+  "allowsHeadingless": true
+}

@@ -1,0 +1,110 @@
+{
+  "id": "builtin/physics-article",
+  "name": "Physics article (REVTeX / arXiv quant-ph)",
+  "description": "A standard long-form physics paper: introduction, preliminaries, methods, results, discussion and outlook, with appendices.",
+  "sections": [
+    {
+      "id": "front",
+      "title": "Title, authors, affiliations",
+      "roles": ["front-matter"],
+      "required": true,
+      "aliases": [],
+      "purpose": "Who did the work and where."
+    },
+    {
+      "id": "abstract",
+      "title": "Abstract",
+      "roles": ["summary"],
+      "required": true,
+      "aliases": [],
+      "purpose": "One paragraph: problem, approach, main result. No citations; define acronyms."
+    },
+    {
+      "id": "intro",
+      "title": "Introduction",
+      "roles": ["motivation"],
+      "required": true,
+      "aliases": [],
+      "purpose": "Context, the gap, your contribution, and a roadmap of the paper."
+    },
+    {
+      "id": "background",
+      "title": "Background / Preliminaries",
+      "roles": ["prior-work", "notation"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Notation, definitions and prior results you build on."
+    },
+    {
+      "id": "methods",
+      "title": "Methods / Model / Setup",
+      "roles": ["methods"],
+      "required": true,
+      "aliases": [],
+      "purpose": "What you did, in enough detail to reproduce it."
+    },
+    {
+      "id": "results",
+      "title": "Results",
+      "roles": ["results"],
+      "required": true,
+      "aliases": [],
+      "purpose": "What you found."
+    },
+    {
+      "id": "discussion",
+      "title": "Discussion",
+      "roles": ["interpretation"],
+      "required": false,
+      "aliases": [],
+      "purpose": "What the results mean, their limitations, and comparison with prior work."
+    },
+    {
+      "id": "conclusion",
+      "title": "Conclusion / Outlook",
+      "roles": ["outlook"],
+      "required": true,
+      "aliases": [],
+      "purpose": "The take-away and open questions."
+    },
+    {
+      "id": "ack",
+      "title": "Acknowledgments",
+      "roles": ["acknowledgments"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Funding and thanks."
+    },
+    {
+      "id": "availability",
+      "title": "Data / Code availability",
+      "roles": ["availability"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Where the data and code behind the results can be found."
+    },
+    {
+      "id": "refs",
+      "title": "References",
+      "roles": ["references"],
+      "required": true,
+      "aliases": [],
+      "purpose": "The bibliography."
+    },
+    {
+      "id": "appendices",
+      "title": "Appendices",
+      "roles": ["supplementary"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Proofs, derivations and extra data that would interrupt the main text."
+    }
+  ],
+  "abstract": {
+    "minWords": 150,
+    "maxWords": 250,
+    "note": "Lemma's default target (a style choice). Check your journal's own limit."
+  },
+  "lengthNote": "",
+  "allowsHeadingless": false
+}

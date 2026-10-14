@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`structure/intro-roadmap > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 3,
+    "message": ""Introduction" has no roadmap paragraph. Readers of longer papers find a short "Section II describes…, Section III…" guide useful.",
+    "severity": "learn",
+  },
+]
+`;

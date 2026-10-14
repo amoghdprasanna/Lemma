@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`structure/role-content-mismatch > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 3,
+    "message": ""Methods" is labelled Methods, but its wording reads more like Results. That can be fine; if this section mainly does that job, reassign its role in the Outline.",
+    "severity": "learn",
+  },
+]
+`;

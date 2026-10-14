@@ -1,0 +1,106 @@
+{
+  "id": "builtin/quantum-journal",
+  "name": "Quantum (quantumarticle)",
+  "description": "An article for the open-access journal Quantum, typically written with the quantumarticle class.",
+  "sections": [
+    {
+      "id": "front",
+      "title": "Title, authors, affiliations",
+      "roles": ["front-matter"],
+      "required": true,
+      "aliases": [],
+      "purpose": "Who did the work and where."
+    },
+    {
+      "id": "abstract",
+      "title": "Abstract",
+      "roles": ["summary"],
+      "required": true,
+      "aliases": [],
+      "purpose": "One paragraph: problem, approach, main result."
+    },
+    {
+      "id": "intro",
+      "title": "Introduction",
+      "roles": ["motivation"],
+      "required": true,
+      "aliases": [],
+      "purpose": "Context, gap, contribution, roadmap."
+    },
+    {
+      "id": "background",
+      "title": "Preliminaries",
+      "roles": ["prior-work", "notation"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Notation and prior results."
+    },
+    {
+      "id": "methods",
+      "title": "Methods / Setup",
+      "roles": ["methods"],
+      "required": false,
+      "aliases": [],
+      "purpose": "What you did."
+    },
+    {
+      "id": "results",
+      "title": "Results",
+      "roles": ["results"],
+      "required": true,
+      "aliases": [],
+      "purpose": "What you found."
+    },
+    {
+      "id": "discussion",
+      "title": "Discussion",
+      "roles": ["interpretation"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Meaning and limitations."
+    },
+    {
+      "id": "conclusion",
+      "title": "Conclusion / Outlook",
+      "roles": ["outlook"],
+      "required": true,
+      "aliases": [],
+      "purpose": "Take-away and open questions."
+    },
+    {
+      "id": "ack",
+      "title": "Acknowledgments",
+      "roles": ["acknowledgments"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Funding and thanks."
+    },
+    {
+      "id": "availability",
+      "title": "Data / Code availability",
+      "roles": ["availability"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Where data and code can be found."
+    },
+    {
+      "id": "refs",
+      "title": "References",
+      "roles": ["references"],
+      "required": true,
+      "aliases": [],
+      "purpose": "The bibliography."
+    },
+    {
+      "id": "appendices",
+      "title": "Appendices",
+      "roles": ["supplementary"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Technical details."
+    }
+  ],
+  "abstract": null,
+  "lengthNote": "Check the current instructions for authors at quantum-journal.org.",
+  "allowsHeadingless": false
+}

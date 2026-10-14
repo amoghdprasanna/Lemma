@@ -1,0 +1,59 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`hygiene/manual-units > fail.tex 1`] = `
+[
+  {
+    "fixes": [
+      "Use \\qty{5}{\\giga\\hertz}
+  \\usepackage{siunitx}
+  \\begin{document}
+- The qubit frequency is 5 GHz at 10~mK and the pulse lasts 20\\,ns.
++ The qubit frequency is \\qty{5}{\\giga\\hertz} at 10~mK and the pulse lasts 20\\,ns.
+  \\end{document}
+  ",
+    ],
+    "line": 4,
+    "message": ""5 GHz" is written by hand. \\qty{5}{\\giga\\hertz} (siunitx) gives correct spacing and upright units, and keeps units consistent.",
+    "severity": "info",
+  },
+  {
+    "fixes": [
+      "Use \\qty{10}{\\milli\\kelvin}
+  \\usepackage{siunitx}
+  \\begin{document}
+- The qubit frequency is 5 GHz at 10~mK and the pulse lasts 20\\,ns.
++ The qubit frequency is 5 GHz at \\qty{10}{\\milli\\kelvin} and the pulse lasts 20\\,ns.
+  \\end{document}
+  ",
+    ],
+    "line": 4,
+    "message": ""10~mK" is written by hand. \\qty{10}{\\milli\\kelvin} (siunitx) gives correct spacing and upright units, and keeps units consistent.",
+    "severity": "info",
+  },
+  {
+    "fixes": [
+      "Use \\qty{20}{\\nano\\second}
+  \\usepackage{siunitx}
+  \\begin{document}
+- The qubit frequency is 5 GHz at 10~mK and the pulse lasts 20\\,ns.
++ The qubit frequency is 5 GHz at 10~mK and the pulse lasts \\qty{20}{\\nano\\second}.
+  \\end{document}
+  ",
+    ],
+    "line": 4,
+    "message": ""20\\,ns" is written by hand. \\qty{20}{\\nano\\second} (siunitx) gives correct spacing and upright units, and keeps units consistent.",
+    "severity": "info",
+  },
+]
+`;
+
+exports[`hygiene/manual-units > fail-no-siunitx.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 3,
+    "message": ""1.5 meV" is written by hand. The siunitx package (\\qty, or \\SI in older versions) typesets numbers and units consistently.",
+    "severity": "info",
+  },
+]
+`;

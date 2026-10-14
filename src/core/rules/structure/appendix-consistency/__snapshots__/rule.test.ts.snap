@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`structure/appendix-consistency > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 4,
+    "message": "The main text mentions "Appendix", but the document has no appendix (no \\appendix). If the material lives in a separate supplemental file, this is fine.",
+    "severity": "warning",
+  },
+]
+`;
+
+exports[`structure/appendix-consistency > fail-unreferenced.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 5,
+    "message": "Nothing in the main text points to the appendices. Readers only find them if the main text says when to look (e.g. "see Appendix A").",
+    "severity": "info",
+  },
+]
+`;

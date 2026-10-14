@@ -1,0 +1,73 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`structure/required-role-missing > fail.tex 1`] = `
+[
+  {
+    "fixes": [
+      "Add an empty Results skeleton
+  \\section{Methods}
+  A setup.
++ 
++ \\section{Results}
++ % TODO: What did you find? Point to the figures, tables and theorems that show it.
+  \\section{Conclusion}
+  A take-away.
+  \\end{document}",
+    ],
+    "line": 2,
+    "message": "No section presents results yet. Every paper needs a part that says what you found, whatever you call it.",
+    "severity": "warning",
+  },
+  {
+    "fixes": [
+      "Add an empty References skeleton
+  \\section{Conclusion}
+  A take-away.
++ 
++ % TODO: Add your bibliography here, e.g. \\bibliography{references} with a .bib file.
+  \\end{document}
+  ",
+    ],
+    "line": 2,
+    "message": "The paper has no references yet.",
+    "severity": "warning",
+  },
+]
+`;
+
+exports[`structure/required-role-missing > fail-template.tex 1`] = `
+[
+  {
+    "fixes": [
+      "Add an empty Results skeleton
+  \\section{Introduction}Context.
+  \\section{Methods}Setup.
++ 
++ \\section{Results}
++ % TODO: What did you find? Point to the figures, tables and theorems that show it.
+  \\bibliography{refs}
+  \\end{document}
+  ",
+    ],
+    "line": 3,
+    "message": "The Physics article (REVTeX / arXiv quant-ph) profile expects "Results" (Results), and no part of the paper fills it yet.",
+    "severity": "warning",
+  },
+  {
+    "fixes": [
+      "Add an empty Outlook skeleton
+  \\section{Introduction}Context.
+  \\section{Methods}Setup.
++ 
++ \\section{Conclusion}
++ % TODO: What is the take-away, and which questions remain open?
+  \\bibliography{refs}
+  \\end{document}
+  ",
+    ],
+    "line": 3,
+    "message": "The Physics article (REVTeX / arXiv quant-ph) profile expects "Conclusion / Outlook" (Outlook), and no part of the paper fills it yet.",
+    "severity": "warning",
+  },
+]
+`;

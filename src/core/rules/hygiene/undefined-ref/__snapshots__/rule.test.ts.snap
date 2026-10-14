@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`hygiene/undefined-ref > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 4,
+    "message": "\\ref{sec:missing} points to a label that does not exist, so it will print as "??". Check the spelling or add \\label{sec:missing}.",
+    "severity": "error",
+  },
+  {
+    "fixes": [],
+    "line": 4,
+    "message": "\\cref{fig:none} points to a label that does not exist, so it will print as "??". Check the spelling or add \\label{fig:none}.",
+    "severity": "error",
+  },
+]
+`;

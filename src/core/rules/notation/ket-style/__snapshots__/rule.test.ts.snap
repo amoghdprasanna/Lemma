@@ -1,0 +1,34 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`notation/ket-style > fail.tex 1`] = `
+[
+  {
+    "fixes": [
+      "Rewrite as \\ket{\\psi}
+  \\usepackage{physics}
+  \\begin{document}
+- States $\\ket{0}$, $\\ket{1}$, $\\ket{+}$ and $|\\psi\\rangle$, with $\\langle a|b\\rangle = 0$.
++ States $\\ket{0}$, $\\ket{1}$, $\\ket{+}$ and $\\ket{\\psi}$, with $\\langle a|b\\rangle = 0$.
+  \\end{document}
+  ",
+    ],
+    "line": 4,
+    "message": "|\\psi\\rangle is written by hand, but most kets in this document use \\ket. Pick one style and use it throughout.",
+    "severity": "warning",
+  },
+  {
+    "fixes": [
+      "Rewrite as \\braket{a}{b}
+  \\usepackage{physics}
+  \\begin{document}
+- States $\\ket{0}$, $\\ket{1}$, $\\ket{+}$ and $|\\psi\\rangle$, with $\\langle a|b\\rangle = 0$.
++ States $\\ket{0}$, $\\ket{1}$, $\\ket{+}$ and $|\\psi\\rangle$, with $\\braket{a}{b} = 0$.
+  \\end{document}
+  ",
+    ],
+    "line": 4,
+    "message": "\\langle a|b\\rangle is written by hand, but most kets in this document use \\braket. Pick one style and use it throughout.",
+    "severity": "warning",
+  },
+]
+`;

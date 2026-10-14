@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`hygiene/duplicate-label > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 3,
+    "message": "\\label{sec:a} is defined more than once, so references to it are ambiguous ("multiply defined" warning).",
+    "severity": "error",
+  },
+]
+`;

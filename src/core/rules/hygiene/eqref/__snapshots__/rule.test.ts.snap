@@ -1,0 +1,45 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`hygiene/eqref > fail.tex 1`] = `
+[
+  {
+    "fixes": [
+      "Use \\eqref{eq:a}
+  \\begin{equation} x=1 \\label{eq:a}\\end{equation}
+  \\begin{align} y=2 \\label{eq:b}\\end{align}
+- By Eq.~(\\ref{eq:a}) and Eq.~\\ref{eq:b}.
++ By Eq.~\\eqref{eq:a} and Eq.~\\ref{eq:b}.
+  \\end{document}
+  ",
+    ],
+    "line": 6,
+    "message": "Equation "eq:a" is referenced with \\ref. Use \\eqref, which adds the parentheses and keeps equation references consistent.",
+    "severity": "warning",
+  },
+  {
+    "fixes": [
+      "Use \\eqref{eq:b}
+  \\begin{equation} x=1 \\label{eq:a}\\end{equation}
+  \\begin{align} y=2 \\label{eq:b}\\end{align}
+- By Eq.~(\\ref{eq:a}) and Eq.~\\ref{eq:b}.
++ By Eq.~(\\ref{eq:a}) and Eq.~\\eqref{eq:b}.
+  \\end{document}
+  ",
+    ],
+    "line": 6,
+    "message": "Equation "eq:b" is referenced with \\ref. Use \\eqref, which adds the parentheses and keeps equation references consistent.",
+    "severity": "warning",
+  },
+]
+`;
+
+exports[`hygiene/eqref > fail-no-amsmath.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 4,
+    "message": "Equation "eq:a" is referenced with \\ref. Use \\eqref, which adds the parentheses and keeps equation references consistent. \\eqref needs the amsmath package.",
+    "severity": "warning",
+  },
+]
+`;

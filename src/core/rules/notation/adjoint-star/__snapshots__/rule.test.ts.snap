@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`notation/adjoint-star > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 3,
+    "message": "U appears with both ^\\dagger and ^*. In quantum information, A^\\dagger is the adjoint (conjugate transpose) and z^* the complex conjugate. If you mean the adjoint here, write ^\\dagger.",
+    "severity": "learn",
+  },
+]
+`;

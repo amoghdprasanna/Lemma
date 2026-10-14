@@ -1,0 +1,24 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`notation/acronym-definition > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 5,
+    "message": ""QEC" is used before it is spelled out on line 5. Move the definition to the first use.",
+    "severity": "warning",
+  },
+  {
+    "fixes": [],
+    "line": 5,
+    "message": ""NISQ" is never spelled out. At its first use, write it in full, e.g. "noisy intermediate-scale quantum (NISQ)".",
+    "severity": "warning",
+  },
+  {
+    "fixes": [],
+    "line": 5,
+    "message": ""VQE" is spelled out only in the abstract. Define it again at its first use in the main text.",
+    "severity": "warning",
+  },
+]
+`;

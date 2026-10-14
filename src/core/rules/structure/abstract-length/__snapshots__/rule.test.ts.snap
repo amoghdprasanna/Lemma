@@ -1,0 +1,29 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`structure/abstract-length > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 4,
+    "message": "The abstract has 7 words; the Physics article (REVTeX / arXiv quant-ph) profile targets 150–250. Short is fine if it still states the problem, approach and main result.",
+    "severity": "info",
+  },
+  {
+    "fixes": [],
+    "line": 4,
+    "message": "The abstract has more than one paragraph. Most journals expect a single paragraph.",
+    "severity": "info",
+  },
+]
+`;
+
+exports[`structure/abstract-length > fail-adaptive.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 3,
+    "message": "The abstract has 294 words; the Physics article (REVTeX / arXiv quant-ph) profile targets 150–250. Lemma's default target (a style choice). Check your journal's own limit.",
+    "severity": "learn",
+  },
+]
+`;

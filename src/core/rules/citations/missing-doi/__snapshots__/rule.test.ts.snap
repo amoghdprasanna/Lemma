@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`citations/missing-doi > fail.bib 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 1,
+    "message": ""nodoi" has neither a DOI nor an arXiv identifier, so readers (and reference managers) cannot link to it reliably.",
+    "severity": "info",
+  },
+]
+`;

@@ -1,0 +1,34 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`notation/trace-style > fail.tex 1`] = `
+[
+  {
+    "fixes": [
+      "Use \\mathrm{Tr}
+  \\documentclass{article}
+  \\begin{document}
+- We use $\\mathrm{Tr}(\\rho)$, $\\mathrm{Tr}(\\sigma)$, $\\text{tr}(A)$ and $Tr(B)$.
++ We use $\\mathrm{Tr}(\\rho)$, $\\mathrm{Tr}(\\sigma)$, $\\mathrm{Tr}(A)$ and $Tr(B)$.
+  \\end{document}
+  ",
+    ],
+    "line": 3,
+    "message": "The trace is written as \\text{tr} here but as \\mathrm{Tr} elsewhere. Use one form throughout.",
+    "severity": "info",
+  },
+  {
+    "fixes": [
+      "Use \\mathrm{Tr}
+  \\documentclass{article}
+  \\begin{document}
+- We use $\\mathrm{Tr}(\\rho)$, $\\mathrm{Tr}(\\sigma)$, $\\text{tr}(A)$ and $Tr(B)$.
++ We use $\\mathrm{Tr}(\\rho)$, $\\mathrm{Tr}(\\sigma)$, $\\text{tr}(A)$ and $\\mathrm{Tr}(B)$.
+  \\end{document}
+  ",
+    ],
+    "line": 3,
+    "message": ""Tr" in math mode is set in italics, as if it were a product of variables T and r. Operator names should be upright.",
+    "severity": "warning",
+  },
+]
+`;

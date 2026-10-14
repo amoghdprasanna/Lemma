@@ -1,0 +1,20 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`structure/abstract-citation > fail.tex 1`] = `
+[
+  {
+    "fixes": [
+      "Remove the citation from the abstract
+  \\documentclass{article}
+  \\begin{document}
+- \\begin{abstract}We extend the surface code~\\cite{kitaev,dennis} to new lattices.\\end{abstract}
++ \\begin{abstract}We extend the surface code to new lattices.\\end{abstract}
+  \\section{Introduction}Prior work~\\cite{a}.
+  \\end{document}",
+    ],
+    "line": 3,
+    "message": "The abstract cites a reference. Abstracts are read on their own (in databases and on arXiv), so they should not depend on citations.",
+    "severity": "warning",
+  },
+]
+`;

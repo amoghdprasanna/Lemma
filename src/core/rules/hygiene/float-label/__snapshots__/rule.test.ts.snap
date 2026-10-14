@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`hygiene/float-label > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 3,
+    "message": "This figure has no \\label, so the text cannot refer to it by number.",
+    "severity": "info",
+  },
+]
+`;

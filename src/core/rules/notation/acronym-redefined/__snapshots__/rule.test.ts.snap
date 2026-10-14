@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`notation/acronym-redefined > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 3,
+    "message": ""QEC" is spelled out again here; it was already defined on line 3. Define it once, at first use.",
+    "severity": "info",
+  },
+]
+`;

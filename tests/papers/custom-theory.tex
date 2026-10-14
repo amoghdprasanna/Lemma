@@ -1,0 +1,32 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}
+
+\begin{document}
+
+\title{An entropy bound for stabilizer codes}
+\author{A. Researcher}
+\maketitle
+
+\begin{abstract}
+We prove an entropy bound that constrains the parameters of stabilizer codes on planar lattices.
+\end{abstract}
+
+\section{Setting}\label{sec:setting}
+Let $\mathcal{C}$ be a stabilizer code on $n$ qubits with distance $d$.
+
+\section{Statement of the bound}\label{sec:statement}
+\begin{theorem}\label{thm:bound}
+Every planar stabilizer code satisfies $k d^2 = O(n)$, where $k$ is the number of logical qubits.
+\end{theorem}
+
+\section{Proof of Theorem~\ref{thm:bound}}\label{sec:proof}
+The argument partitions the lattice into regions of size comparable to $d$, as set up in Section~\ref{sec:setting}.
+
+\section{Remarks}
+The bound in Section~\ref{sec:statement} is tight for the surface code~\cite{bravyi2010}.
+
+\bibliography{references}
+
+\end{document}

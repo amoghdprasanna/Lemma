@@ -1,0 +1,58 @@
+{
+  "id": "builtin/thesis-chapter",
+  "name": "Thesis chapter",
+  "description": "One chapter of a thesis: an opening, the work itself, and a chapter summary. The bibliography usually lives elsewhere.",
+  "sections": [
+    {
+      "id": "intro",
+      "title": "Chapter introduction",
+      "roles": ["motivation"],
+      "required": true,
+      "aliases": [],
+      "purpose": "What this chapter does and how it connects to the rest of the thesis."
+    },
+    {
+      "id": "background",
+      "title": "Background",
+      "roles": ["prior-work", "notation"],
+      "required": false,
+      "aliases": [],
+      "purpose": "What the reader needs from earlier chapters or the literature."
+    },
+    {
+      "id": "methods",
+      "title": "Methods",
+      "roles": ["methods"],
+      "required": true,
+      "aliases": [],
+      "purpose": "What you did."
+    },
+    {
+      "id": "results",
+      "title": "Results",
+      "roles": ["results"],
+      "required": true,
+      "aliases": [],
+      "purpose": "What you found."
+    },
+    {
+      "id": "discussion",
+      "title": "Discussion",
+      "roles": ["interpretation"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Meaning and limitations."
+    },
+    {
+      "id": "summary",
+      "title": "Chapter summary",
+      "roles": ["outlook"],
+      "required": true,
+      "aliases": ["chapter summary"],
+      "purpose": "What the chapter established and what comes next."
+    }
+  ],
+  "abstract": null,
+  "lengthNote": "",
+  "allowsHeadingless": false
+}

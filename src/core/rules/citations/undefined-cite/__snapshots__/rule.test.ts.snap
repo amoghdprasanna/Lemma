@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`citations/undefined-cite > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 3,
+    "message": "\\cite{b}: no bibliography entry has the key "b", so it will print as [?]. Check the spelling against your .bib file.",
+    "severity": "warning",
+  },
+]
+`;

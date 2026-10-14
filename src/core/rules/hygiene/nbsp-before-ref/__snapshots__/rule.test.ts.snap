@@ -1,0 +1,35 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`hygiene/nbsp-before-ref > fail.tex 1`] = `
+[
+  {
+    "fixes": [
+      "Replace the space with ~
+  \\begin{document}
+  \\section{A}\\label{sec:a}
+- As shown in Ref. \\cite{a} and in Sec.
++ As shown in Ref.~\\cite{a} and in Sec.
+  \\ref{sec:a}, we proceed.
+  \\end{document}",
+    ],
+    "line": 4,
+    "message": "Use a non-breaking space (~) before \\cite so the number never starts a new line on its own.",
+    "severity": "warning",
+  },
+  {
+    "fixes": [
+      "Replace the space with ~
+  \\begin{document}
+  \\section{A}\\label{sec:a}
+- As shown in Ref. \\cite{a} and in Sec.
+- \\ref{sec:a}, we proceed.
++ As shown in Ref. \\cite{a} and in Sec.~\\ref{sec:a}, we proceed.
+  \\end{document}
+  ",
+    ],
+    "line": 5,
+    "message": "Use a non-breaking space (~) before \\ref so the number never starts a new line on its own.",
+    "severity": "warning",
+  },
+]
+`;

@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`structure/section-order > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 6,
+    "message": "In the Physics article (REVTeX / arXiv quant-ph) profile, "Methods / Model / Setup" usually comes before "Results". Reordering is optional.",
+    "severity": "info",
+  },
+]
+`;

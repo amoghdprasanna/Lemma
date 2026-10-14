@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`hygiene/label-before-caption > fail.tex 1`] = `
+[
+  {
+    "fixes": [
+      "Move the label after the caption
+  \\begin{figure}
+  \\includegraphics{a}
+- \\label{fig:a}
+- \\caption{Cap.}
++ \\caption{Cap.}\\label{fig:a}
+  \\end{figure}
+  \\end{document}",
+    ],
+    "line": 5,
+    "message": "\\label{fig:a} comes before \\caption, so it refers to the surrounding section, not this figure. Move it after the caption.",
+    "severity": "warning",
+  },
+]
+`;

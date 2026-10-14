@@ -1,0 +1,29 @@
+\documentclass[aps,prl,twocolumn]{revtex4-2}
+\usepackage{amsmath}
+\usepackage{physics}
+
+\begin{document}
+
+\title{A short note on biased-noise thresholds}
+\author{A. Researcher}
+\affiliation{Department of Physics, Example University}
+
+\begin{abstract}
+We show that tailoring the checks of a planar code to dephasing noise raises its threshold, and we give a simple argument for why.
+\end{abstract}
+
+\maketitle
+
+Biased noise is common in superconducting qubits~\cite{tuckett2018}. Here we give a short argument that a planar code adapted to such noise has a higher threshold than the standard construction.
+
+Consider a planar lattice whose plaquette checks are rotated so that pure dephasing errors map to a repetition code. We find that the effective distance against such errors doubles, which explains the higher threshold reported in numerical studies~\cite{tuckett2018}.
+
+This simple picture suggests that modest changes to a code can pay off on real hardware.
+
+\begin{acknowledgments}
+We thank colleagues for discussions.
+\end{acknowledgments}
+
+\bibliography{references}
+
+\end{document}

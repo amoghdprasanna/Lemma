@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`structure/abstract-acronym > fail.tex 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 3,
+    "message": ""QEC" is used in the abstract without being spelled out there (e.g. quantum error correction (QEC)). The abstract is read on its own, so define acronyms in it as well as in the main text.",
+    "severity": "warning",
+  },
+]
+`;

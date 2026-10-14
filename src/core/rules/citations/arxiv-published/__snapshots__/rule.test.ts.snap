@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`citations/arxiv-published > fail.bib 1`] = `
+[
+  {
+    "fixes": [],
+    "line": 1,
+    "message": ""old" cites arXiv:1901.00001 from 2019. Preprints this old are often published by now; check its arXiv page for a journal reference and cite the published version if there is one.",
+    "severity": "info",
+  },
+  {
+    "fixes": [],
+    "line": 2,
+    "message": ""old2" cites arXiv:1802.01234 from 2018. Preprints this old are often published by now; check its arXiv page for a journal reference and cite the published version if there is one.",
+    "severity": "info",
+  },
+]
+`;

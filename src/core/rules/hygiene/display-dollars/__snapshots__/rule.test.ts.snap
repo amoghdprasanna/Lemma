@@ -1,0 +1,20 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`hygiene/display-dollars > fail.tex 1`] = `
+[
+  {
+    "fixes": [
+      "Replace $$…$$ with \\[…\\]
+  \\begin{document}
+  The energy is
+- $$ E = \\hbar \\omega . $$
++ \\[ E = \\hbar \\omega . \\]
+  done.
+  \\end{document}",
+    ],
+    "line": 4,
+    "message": "$$…$$ is plain-TeX syntax and gives inconsistent spacing in LaTeX. Use \\[…\\], or an equation environment if you want a number.",
+    "severity": "warning",
+  },
+]
+`;

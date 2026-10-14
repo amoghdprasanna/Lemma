@@ -1,0 +1,82 @@
+{
+  "id": "builtin/review",
+  "name": "Review article",
+  "description": "A review: an introduction, several topical sections surveying prior work, and an outlook.",
+  "sections": [
+    {
+      "id": "front",
+      "title": "Title, authors, affiliations",
+      "roles": ["front-matter"],
+      "required": true,
+      "aliases": [],
+      "purpose": "Who wrote the review."
+    },
+    {
+      "id": "abstract",
+      "title": "Abstract",
+      "roles": ["summary"],
+      "required": true,
+      "aliases": [],
+      "purpose": "What the review covers and for whom."
+    },
+    {
+      "id": "intro",
+      "title": "Introduction",
+      "roles": ["motivation"],
+      "required": true,
+      "aliases": [],
+      "purpose": "Scope, audience and a roadmap."
+    },
+    {
+      "id": "basics",
+      "title": "Basics / Notation",
+      "roles": ["notation"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Shared notation and definitions."
+    },
+    {
+      "id": "survey",
+      "title": "Topical sections",
+      "roles": ["prior-work"],
+      "required": true,
+      "aliases": [],
+      "purpose": "The surveyed work, organised by theme."
+    },
+    {
+      "id": "outlook",
+      "title": "Outlook / Open problems",
+      "roles": ["outlook"],
+      "required": true,
+      "aliases": [],
+      "purpose": "Open questions and where the field is heading."
+    },
+    {
+      "id": "ack",
+      "title": "Acknowledgments",
+      "roles": ["acknowledgments"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Funding and thanks."
+    },
+    {
+      "id": "refs",
+      "title": "References",
+      "roles": ["references"],
+      "required": true,
+      "aliases": [],
+      "purpose": "The bibliography."
+    },
+    {
+      "id": "appendices",
+      "title": "Appendices",
+      "roles": ["supplementary"],
+      "required": false,
+      "aliases": [],
+      "purpose": "Technical details."
+    }
+  ],
+  "abstract": null,
+  "lengthNote": "",
+  "allowsHeadingless": false
+}
