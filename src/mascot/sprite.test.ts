@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { encodePng } from './png';
+import { decodePng, encodePng } from './png';
 import {
   GRID,
   ICON_EXPRESSION,
@@ -97,11 +97,17 @@ describe('mascot sprite', () => {
   });
 
   it.each(ICON_SIZES)('packaged icon %ipx is up to date (run `npm run icons`)', (size) => {
-    const committed = readFileSync(
-      path.resolve(import.meta.dirname, `../../public/icon/${String(size)}.png`),
+    const committed = decodePng(
+      readFileSync(path.resolve(import.meta.dirname, `../../public/icon/${String(size)}.png`)),
     );
+    expect([committed.width, committed.height]).toEqual([size, size]);
     expect(
-      encodePng(rasterize(ICON_EXPRESSION, size, iconLook(size)), size, size).equals(committed),
+      committed.rgba.equals(Buffer.from(rasterize(ICON_EXPRESSION, size, iconLook(size)).buffer)),
     ).toBe(true);
+  });
+
+  it('round-trips pixels through the PNG encoder', () => {
+    const rgba = rasterize('happy', 48, iconLook(48));
+    expect(decodePng(encodePng(rgba, 48, 48)).rgba.equals(Buffer.from(rgba.buffer))).toBe(true);
   });
 });
