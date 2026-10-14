@@ -3,6 +3,8 @@ import { checkFix } from '@/src/core/fixes/guard';
 import { diffEdits, type DiffHunk } from '@/src/core/fixes/diff';
 import { normalizeEdits, type Fix, type TextEdit } from '@/src/core/fixes/text-edit';
 import { cardSummary, findCard } from '@/src/core/knowledge/cards';
+import { relatedCards } from '@/src/core/knowledge/search';
+import { isDraftingRequest, MAX_QUESTION } from '@/src/core/llm/prompts';
 import type { ProjectAnalysis, ProjectFile } from '@/src/core/project/project';
 import { forkProfile } from '@/src/core/profiles/registry';
 import { parseProfile, type Profile } from '@/src/core/profiles/schema';
@@ -27,12 +29,31 @@ export interface Preview {
   error: string | null;
 }
 
+/** A typed question in the Learn tab's chat and what came of it. */
+export interface TopicState {
+  id: number;
+  question: string;
+  /** Matching learning cards, best first. Shown whatever the model does. */
+  cardIds: string[];
+  /**
+   * - busy: the on-device model is answering
+   * - answered: `text` holds the model's answer
+   * - off-topic: physics, judging results, or anything else outside LaTeX and writing
+   * - refused: asked Lemma to write paper text (ADR-0003); the model never saw it
+   * - notes-only: no model, or it gave no usable answer; the cards stand alone
+   */
+  status: 'busy' | 'answered' | 'off-topic' | 'refused' | 'notes-only';
+  text: string | null;
+}
+
 export interface AiState {
   availability: LlmAvailability;
   progress: number | null;
   error: string | null;
   explanations: Record<string, { text: string | null; busy: boolean }>;
   roleSuggestions: Record<string, { suggestion: RoleSuggestion | null; busy: boolean }>;
+  /** The Learn tab's chat, oldest first. Lives as long as the panel. */
+  chat: TopicState[];
 }
 
 export interface PanelState {
@@ -43,6 +64,11 @@ export interface PanelState {
   /** Snapshot version the current analysis was computed from. */
   analysisVersion: number | null;
   analyzing: boolean;
+  /**
+   * Debounced "busy" for the mascot: true once checking or the model has run
+   * for THINK_DELAY_MS, and kept for at least THINK_MIN_MS so it never flickers.
+   */
+  thinking: boolean;
   storedSettings: Partial<DocSettings> | null;
   dismissed: string[];
   customProfiles: Profile[];
@@ -72,6 +98,19 @@ const keys = (projectId: string | null) => ({
   files: `files:${projectId ?? 'unknown'}`,
 });
 
+const THINK_DELAY_MS = 250;
+const MAX_CHAT = 30;
+const THINK_MIN_MS = 900;
+
+function isBusy(s: PanelState): boolean {
+  return (
+    s.analyzing ||
+    s.ai.chat.some((t) => t.status === 'busy') ||
+    Object.values(s.ai.explanations).some((e) => e.busy) ||
+    Object.values(s.ai.roleSuggestions).some((r) => r.busy)
+  );
+}
+
 interface DocRecord {
   settings: Partial<DocSettings> | null;
   dismissed: string[];
@@ -82,6 +121,9 @@ export class PanelController {
   private readonly listeners = new Set<() => void>();
   private readonly cleanups: (() => void)[] = [];
   private persistFilesTimer: ReturnType<typeof setTimeout> | null = null;
+  private thinkStartTimer: ReturnType<typeof setTimeout> | null = null;
+  private thinkMinTimer: ReturnType<typeof setTimeout> | null = null;
+  private nextTurnId = 1;
 
   constructor(private readonly deps: ControllerDeps) {
     this.state = {
@@ -91,6 +133,7 @@ export class PanelController {
       analysis: null,
       analysisVersion: null,
       analyzing: false,
+      thinking: false,
       storedSettings: null,
       dismissed: [],
       customProfiles: [],
@@ -108,6 +151,7 @@ export class PanelController {
         error: null,
         explanations: {},
         roleSuggestions: {},
+        chat: [],
       },
     };
   }
@@ -122,8 +166,30 @@ export class PanelController {
   };
 
   private set(patch: Partial<PanelState>) {
-    this.state = { ...this.state, ...patch };
+    this.state = this.withThinking({ ...this.state, ...patch });
     for (const l of this.listeners) l();
+  }
+
+  /** Starts or stops the thinking debounce; the timers call set() again when they fire. */
+  private withThinking(next: PanelState): PanelState {
+    if (isBusy(next)) {
+      if (!next.thinking && this.thinkStartTimer === null) {
+        this.thinkStartTimer = setTimeout(() => {
+          this.thinkStartTimer = null;
+          this.thinkMinTimer = setTimeout(() => {
+            this.thinkMinTimer = null;
+            this.set({});
+          }, THINK_MIN_MS);
+          this.set({ thinking: true });
+        }, THINK_DELAY_MS);
+      }
+      return next;
+    }
+    if (this.thinkStartTimer !== null) {
+      clearTimeout(this.thinkStartTimer);
+      this.thinkStartTimer = null;
+    }
+    return next.thinking && this.thinkMinTimer === null ? { ...next, thinking: false } : next;
   }
 
   private setAi(patch: Partial<AiState>) {
@@ -166,6 +232,7 @@ export class PanelController {
 
   dispose(): void {
     for (const c of this.cleanups) c();
+    for (const t of [this.thinkStartTimer, this.thinkMinTimer]) if (t !== null) clearTimeout(t);
     this.deps.editor.dispose();
     this.deps.analyzer.dispose();
   }
@@ -567,5 +634,52 @@ export class PanelController {
         : null,
     });
     this.setAi({ explanations: { ...this.state.ai.explanations, [key]: { text, busy: false } } });
+  }
+
+  /**
+   * Answers a typed question about LaTeX or paper writing from the curated
+   * notes, with the on-device model when it is on, and adds it to the chat.
+   * Requests to write paper text are refused before the model sees them
+   * (ADR-0003, ADR-0007).
+   */
+  async askTopic(question: string): Promise<void> {
+    const q = question.trim().slice(0, MAX_QUESTION);
+    if (q === '') return;
+    const cards = relatedCards(q);
+    const id = this.nextTurnId++;
+    const base = { id, question: q, cardIds: cards.map((card) => card.id), text: null };
+    const put = (turn: TopicState) => {
+      const others = this.state.ai.chat.filter((t) => t.id !== id);
+      this.setAi({ chat: [...others, turn].slice(-MAX_CHAT) });
+    };
+    if (isDraftingRequest(q)) {
+      put({ ...base, status: 'refused' });
+      return;
+    }
+    const llm = this.deps.llm;
+    if (!llm || this.state.ai.availability !== 'available') {
+      put({ ...base, status: 'notes-only' });
+      return;
+    }
+    put({ ...base, status: 'busy' });
+    const answer = await llm.askTopic({
+      question: q,
+      notes: cards.map((card) => ({
+        title: card.title,
+        text: `${cardSummary(card)} ${card.body.slice(0, 600)}`,
+      })),
+    });
+    if (!this.state.ai.chat.some((t) => t.id === id)) return; // the chat was cleared meanwhile
+    put(
+      answer === null
+        ? { ...base, status: 'notes-only' }
+        : answer.kind === 'off-topic'
+          ? { ...base, status: 'off-topic' }
+          : { ...base, status: 'answered', text: answer.text },
+    );
+  }
+
+  clearChat(): void {
+    this.setAi({ chat: [] });
   }
 }

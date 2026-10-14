@@ -25,8 +25,8 @@ test('side panel page renders with no network requests and no console errors', a
   const mascot = page.getByRole('button', { name: 'Say hi to Lemma' });
   await expect(mascot).toBeVisible();
   await mascot.click();
-  await expect(mascot.locator('svg')).toHaveClass('mascot-hop');
-  await expect(mascot.locator('svg')).not.toHaveClass('mascot-hop', { timeout: 2000 });
+  await expect(mascot).toHaveAttribute('data-motion', 'hop');
+  await expect(mascot).not.toHaveAttribute('data-motion', 'hop', { timeout: 2000 });
   expect(errors).toEqual([]);
   const external = requests.map((r) => r.url()).filter((u) => !u.startsWith('chrome-extension://'));
   expect(external).toEqual([]);

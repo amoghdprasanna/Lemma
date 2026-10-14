@@ -22,6 +22,9 @@ const raw = import.meta.glob<string>('/knowledge/cards/*.md', {
 function unquote(v: string): string {
   const t = v.trim();
   if (t.startsWith('"')) return JSON.parse(t) as string;
+  // YAML single quotes: '' is an escaped quote, nothing else is special.
+  if (t.startsWith("'") && t.endsWith("'") && t.length >= 2)
+    return t.slice(1, -1).replace(/''/g, "'");
   return t;
 }
 

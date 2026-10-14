@@ -1,6 +1,6 @@
 # ADR-0004: On-device-only AI with Gemini Nano
 
-- **Status:** Accepted (implementation in Phase 4)
+- **Status:** Accepted (implementation in Phase 4); scope extended by [ADR-0007](0007-topic-questions.md)
 - **Date:** 2026-10-13
 
 ## Context

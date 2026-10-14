@@ -123,6 +123,7 @@ test('shows the outline, translates the compile log and opens learning cards', a
   );
 
   await panel.getByRole('tab', { name: 'Learn' }).click();
+  await panel.getByRole('button', { name: /^Notes/ }).click();
   await panel.getByRole('button', { name: /Avoid \$\$…\$\$/ }).click();
   await expect(panel.getByRole('heading', { name: 'Avoid $$…$$' })).toBeVisible();
 });

@@ -32,6 +32,18 @@ const EditOp = z.object({
 const Message = z.discriminatedUnion('type', [
   /** Content script -> background: this tab is an Overleaf project page. */
   envelope('tab/hello', z.object({ projectId: z.string().regex(/^[0-9a-f]{24}$/) })),
+  /**
+   * Panel -> background: the panel is busy (checking, or the on-device model
+   * is answering), so the toolbar mascot thinks. `still` honours reduced motion.
+   */
+  envelope(
+    'mascot/mood',
+    z.object({
+      tabId: z.number().int().nonnegative(),
+      mood: z.enum(['thinking', 'idle']),
+      still: z.boolean(),
+    }),
+  ),
   /** Page -> panel: can Lemma read the editor? */
   envelope(
     'editor/status',

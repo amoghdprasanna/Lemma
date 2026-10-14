@@ -250,6 +250,68 @@ describe('PanelController', () => {
     expect(c.getState().ai.explanations[d.id]?.text).toBeNull();
   });
 
+  it('answers topic questions from the notes, with or without the model', async () => {
+    const { c, llm } = await setup();
+    await c.askTopic('When should I use \\eqref?');
+    expect(c.getState().ai.chat.at(-1)).toMatchObject({ status: 'notes-only', cardIds: ['eqref'] });
+    expect(llm.calls).toEqual([]); // model not enabled
+    await c.enableAi();
+    await c.askTopic('When should I use \\eqref?');
+    expect(c.getState().ai.chat).toHaveLength(2);
+    expect(c.getState().ai.chat.at(-1)).toMatchObject({
+      status: 'answered',
+      text: 'Use \\eqref for equations.',
+    });
+  });
+
+  it('refuses to write paper text without asking the model', async () => {
+    const { c, llm } = await setup(DOC, fakeLlm({ availability: 'available' }));
+    await c.askTopic('Write my abstract');
+    expect(c.getState().ai.chat.at(-1)?.status).toBe('refused');
+    expect(llm.calls).toEqual([]);
+  });
+
+  it('passes on physics questions the model marks off-topic', async () => {
+    const { c } = await setup(
+      DOC,
+      fakeLlm({ availability: 'available', topic: '{"onTopic":false,"answer":""}' }),
+    );
+    await c.askTopic('What is a density matrix?');
+    expect(c.getState().ai.chat.at(-1)?.status).toBe('off-topic');
+    c.clearChat();
+    expect(c.getState().ai.chat).toEqual([]);
+  });
+
+  it('thinks while the model is slow, without flickering on quick work', async () => {
+    let release: () => void = () => undefined;
+    const slow = fakeLlm({ availability: 'available' });
+    const askTopic = slow.askTopic.bind(slow);
+    slow.askTopic = (input) =>
+      new Promise((resolve) => {
+        release = () => {
+          resolve(askTopic(input));
+        };
+      });
+    const { c } = await setup(DOC, slow);
+    await vi.waitFor(() => {
+      expect(c.getState().thinking).toBe(false);
+    });
+    const pending = c.askTopic('When should I use \\eqref?');
+    expect(c.getState().thinking).toBe(false); // debounced
+    await vi.waitFor(() => {
+      expect(c.getState().thinking).toBe(true);
+    });
+    release();
+    await pending;
+    expect(c.getState().thinking).toBe(true); // held for a minimum time
+    await vi.waitFor(
+      () => {
+        expect(c.getState().thinking).toBe(false);
+      },
+      { timeout: 2000 },
+    );
+  });
+
   it('reveals ranges in the editor', async () => {
     const { c, editor } = await setup();
     c.reveal(10, 20);

@@ -9,6 +9,7 @@ import {
   unavailableEditorPort,
 } from '@/src/adapters/overleaf/runtime-editor-port';
 import { chromeStorage } from '@/src/adapters/storage/storage';
+import { makeMessage } from '@/src/messaging/protocol';
 import { App } from '@/src/ui/App';
 import { ControllerContext } from '@/src/ui/context';
 import { PanelController } from '@/src/ui/controller/controller';
@@ -48,6 +49,20 @@ async function main() {
   });
   window.addEventListener('unload', () => {
     controller.dispose();
+  });
+
+  // The toolbar mascot thinks while the panel does.
+  let thinking = false;
+  controller.subscribe(() => {
+    const now = controller.getState().thinking;
+    if (now === thinking || tabId === undefined) return;
+    thinking = now;
+    const message = makeMessage('mascot/mood', {
+      tabId,
+      mood: now ? 'thinking' : 'idle',
+      still: matchMedia('(prefers-reduced-motion: reduce)').matches,
+    });
+    browser.runtime.sendMessage(message).catch(() => undefined);
   });
   void controller.start();
 

@@ -1,18 +1,27 @@
 import { browser } from 'wxt/browser';
-import { rasterize, type Expression } from './sprite';
+import { rasterize, THINK_FRAMES, type Expression } from './sprite';
 
 /**
  * The toolbar icon is the mascot, and its face tracks the tab:
  * - asleep: not an Overleaf project (action disabled, so Chrome also greys it)
  * - awake:  an Overleaf project; clicking opens the side panel
  * - happy:  the side panel is open on this tab
+ * - thinking: the panel is checking the paper or the on-device model is answering
  */
-export type Mood = 'asleep' | 'awake' | 'happy';
+export type Mood = 'asleep' | 'awake' | 'happy' | 'thinking';
 
 const TITLES: Record<Mood, string> = {
   asleep: 'Lemma is asleep. Open an Overleaf project to wake it up.',
   awake: 'Lemma: click to open the side panel',
   happy: 'Lemma: side panel open',
+  thinking: 'Lemma is thinking…',
+};
+
+const FACE: Record<Mood, Expression> = {
+  asleep: 'asleep',
+  awake: 'awake',
+  happy: 'happy',
+  thinking: 'think3',
 };
 
 /** Toolbar icons are 16 dip; 32 covers high-DPI screens. */
@@ -52,7 +61,7 @@ async function showFace(tabId: number | undefined, expression: Expression): Prom
 export async function setMood(tabId: number | undefined, mood: Mood): Promise<void> {
   nextGeneration(tabId);
   await Promise.all([
-    showFace(tabId, mood),
+    showFace(tabId, FACE[mood]),
     browser.action.setTitle(
       tabId === undefined ? { title: TITLES[mood] } : { tabId, title: TITLES[mood] },
     ),
@@ -76,6 +85,25 @@ export async function wakeUp(tabId: number): Promise<void> {
       if (generations.get(tabId) === generation) void showFace(tabId, expression);
     }, at);
   }
+}
+
+const THINK_FRAME_MS = 400;
+/** Stop animating eventually, so a panel that died mid-thought can't spin the icon forever. */
+const MAX_THINK_FRAMES = 150;
+
+/** Shows the thinking face; with `animate`, the "…" fills in on a loop until the mood changes. */
+export async function think(tabId: number, animate: boolean): Promise<void> {
+  await setMood(tabId, 'thinking');
+  if (!animate) return;
+  const generation = generations.get(tabId);
+  let frame = 0;
+  const step = () => {
+    if (generations.get(tabId) !== generation || frame >= MAX_THINK_FRAMES) return;
+    void showFace(tabId, THINK_FRAMES[frame % THINK_FRAMES.length] ?? 'think3');
+    frame++;
+    setTimeout(step, THINK_FRAME_MS);
+  };
+  step();
 }
 
 /** Frees per-tab bookkeeping. */

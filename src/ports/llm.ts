@@ -1,3 +1,4 @@
+import type { TopicResult } from '@/src/core/llm/filter';
 import type { Role } from '@/src/core/structure/roles';
 
 /**
@@ -38,6 +39,15 @@ export interface LogExplainInput {
   curated: string | null;
 }
 
+export interface TopicInput {
+  question: string;
+  /** Curated notes matching the question: the facts the answer should stay within. */
+  notes: { title: string; text: string }[];
+}
+
+/** An answer about LaTeX or paper writing, or a refusal for anything else (physics, drafting). */
+export type TopicAnswer = TopicResult;
+
 export interface LlmPort {
   availability(): Promise<LlmAvailability>;
   /** Creates the session; downloads the model if needed. Must run from a user gesture. */
@@ -45,4 +55,5 @@ export interface LlmPort {
   suggestRoles(input: RoleSuggestionInput): Promise<RoleSuggestion | null>;
   explain(input: ExplainInput): Promise<string | null>;
   explainLogEntry(input: LogExplainInput): Promise<string | null>;
+  askTopic(input: TopicInput): Promise<TopicAnswer | null>;
 }

@@ -13,10 +13,20 @@ All notable changes to this project are documented here. The format follows [Kee
 - **Learning layer** (Phase 3): 22 sourced learning cards marked rule / style choice / reference, Write and Learn modes, notation sheet, outline with role reassignment, custom profile editor (add, remove, rename, reorder, merge, required/optional), per-document settings in a `% lemma:` comment or in browser storage, dismissals remembered per project.
 - **On-device AI** (Phase 4): optional Gemini Nano explanations, role suggestions and log rewording behind `LlmPort`, with an output filter, availability states, explicit opt-in download, snippet-only prompts and a per-prompt cache.
 - **Multi-file projects** (Phase 5): files cached as you open them, local zip import, flattened analysis with source maps, per-file results, partial-view indicator.
+- **Ask** box in the Learn tab: a question about LaTeX or paper writing finds the matching notes and, with on-device AI on, gets a short answer grounded in them. Requests to write paper text are refused before the model sees them, and physics questions are marked off-topic (ADR-0007).
+- **Editor-style panel**: VS Code–like layout with icon tabs (icons only when the panel is narrow), a Problems-style Checks list (one row per item, quick fixes always visible, details on expand), a status bar with checking state, counts and AI state, and light/dark Modern colour tokens.
+- **Ask Lemma chat** in the Learn tab: a thread with suggested questions and a composer pinned at the bottom; the notes library sits beside it.
+- **2.5D mascot**: the same builder as a lit, bevelled voxel sprite on a soft shadow, animated in a rubber-hose cartoon style (breathing, leaning toward the pointer, squash-and-stretch hops, a somersault on three quick clicks, a swaying shuffle while thinking). Packaged icons at 48 px and up get the voxel look.
+- **Mascot polish**: outlined sprite with hat highlight, shading, a mouth and rosy cheeks when happy. It thinks while Lemma checks the paper or the model answers (eyes up, a "…" filling in, in the panel and on the toolbar), then hops when done. Still frames with reduced motion.
 - ADR-0005 (multi-file projects) and ADR-0006 (LaTeX parsing).
+- ADR-0007 (topic questions).
 - Acceptance fixtures: a clean REVTeX quant-ph paper (zero diagnostics), a Letter without headings and a custom-named theory paper (no structure warnings in Adaptive mode); Playwright tests against a mock Overleaf page running real CodeMirror 6.
 
 ### Changed
+
+- Learning card titles in single quotes no longer show the quotes.
+
+- The toolbar mascot no longer falls asleep on an Overleaf project when the page loads something inside it (PDF preview, recompile).
 
 - Permissions: added `storage` and host access to `https://*.overleaf.com/*`.
 

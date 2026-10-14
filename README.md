@@ -13,14 +13,14 @@ A structure-first LaTeX assistant for Overleaf, aimed at physics and quantum-inf
 
 ## Features
 
-| Tab          | What it does                                                                                                                                                                                                                   |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Checks**   | Diagnostics for the open file: _Go to_, _Fix_ (diff preview → Apply), _Why?_, _Learn more_, and _Intentional_ to dismiss for this document. "Fix all" for repeated issues. Items in other project files are listed separately. |
-| **Outline**  | The paper's parts and the roles each fills, with how Lemma decided (heading, guess, you, on-device AI). Reassign roles; in Template mode, a checklist of what the profile expects with "Add skeleton".                         |
-| **Notation** | Your own conventions at a glance: symbols you introduce ("where $H$ is…"), acronyms and their expansions, macros you define, ket/trace/adjoint styles, packages.                                                               |
-| **Learn**    | 22 learning cards (paper structure, abstracts, `\eqref`, ties, `$$`, floats, siunitx, bra-ket packages, trace, † vs \*, acronyms, DOIs, compile errors…), searchable, each with sources.                                       |
-| **Log**      | Reads the compile log Overleaf already shows (or a pasted one) and explains each error in plain language with a likely cause.                                                                                                  |
-| **Settings** | Structure mode, profile, where settings live (this browser or a `% lemma:` comment in the document), per-rule switches, custom profiles, project files (zip import), and the opt-in on-device AI.                              |
+| Tab          | What it does                                                                                                                                                                                                                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Checks**   | Diagnostics for the open file: _Go to_, _Fix_ (diff preview → Apply), _Why?_, _Learn more_, and _Intentional_ to dismiss for this document. "Fix all" for repeated issues. Items in other project files are listed separately.                                                                                            |
+| **Outline**  | The paper's parts and the roles each fills, with how Lemma decided (heading, guess, you, on-device AI). Reassign roles; in Template mode, a checklist of what the profile expects with "Add skeleton".                                                                                                                    |
+| **Notation** | Your own conventions at a glance: symbols you introduce ("where $H$ is…"), acronyms and their expansions, macros you define, ket/trace/adjoint styles, packages.                                                                                                                                                          |
+| **Learn**    | 22 learning cards (paper structure, abstracts, `\eqref`, ties, `$$`, floats, siunitx, bra-ket packages, trace, † vs \*, acronyms, DOIs, compile errors…), searchable, each with sources. **Ask Lemma** is a chat for LaTeX and writing questions: it finds the matching notes and, with on-device AI on, answers briefly. |
+| **Log**      | Reads the compile log Overleaf already shows (or a pasted one) and explains each error in plain language with a likely cause.                                                                                                                                                                                             |
+| **Settings** | Structure mode, profile, where settings live (this browser or a `% lemma:` comment in the document), per-rule switches, custom profiles, project files (zip import), and the opt-in on-device AI.                                                                                                                         |
 
 **Write mode** shows only errors and warnings; **Learn mode** also shows learning notes and expands every explanation.
 
@@ -45,7 +45,7 @@ Overleaf shows one file at a time. Lemma remembers each file you open (until the
 
 ### On-device AI (optional)
 
-With Chrome's built-in Gemini Nano (Prompt API), Lemma can explain a check in terms of your own snippet, suggest roles for sections with ambiguous headings, and reword compile errors. It never writes paper content; every answer is filtered and falls back to the curated card. The model download (several GB) starts only when you click **Enable AI explanations**. Requirements (Chrome's): 22 GB free disk, and a GPU with more than 4 GB VRAM or 16 GB RAM with 4+ CPU cores. **English only.** Everything else works without it.
+With Chrome's built-in Gemini Nano (Prompt API), Lemma can explain a check in terms of your own snippet, suggest roles for sections with ambiguous headings, reword compile errors, and answer questions about LaTeX or paper writing from the Learn tab ([ADR-0007](docs/adr/0007-topic-questions.md)). It doesn't answer physics questions. It never writes paper content; every answer is filtered and falls back to the curated card. The model download (several GB) starts only when you click **Enable AI explanations**. Requirements (Chrome's): 22 GB free disk, and a GPU with more than 4 GB VRAM or 16 GB RAM with 4+ CPU cores. **English only.** Everything else works without it.
 
 ## Install (development build)
 
