@@ -30,7 +30,7 @@ function api(): LemmaLanguageModelStatic | null {
 }
 
 export function geminiNano(): LlmPort {
-  let base: LemmaLanguageModelSession | null = null;
+  let base: Promise<LemmaLanguageModelSession> | null = null;
   const cache = new Map<string, string | null>();
 
   const remember = (key: string, value: string | null) => {
@@ -39,12 +39,49 @@ export function geminiNano(): LlmPort {
     return value;
   };
 
+  const create = (lm: LemmaLanguageModelStatic, onProgress?: (fraction: number) => void) => {
+    base ??= lm
+      .create({
+        ...LANGUAGE,
+        initialPrompts: [{ role: 'system', content: SYSTEM_PROMPT }],
+        monitor(m) {
+          m.addEventListener('downloadprogress', (e) => {
+            onProgress?.(e.loaded);
+          });
+        },
+      })
+      .catch((e: unknown) => {
+        base = null;
+        throw e;
+      });
+    return base;
+  };
+
+  /**
+   * The base session. A reopened panel starts without one even though the
+   * model is already on disk, so open it on the first prompt; that needs no
+   * click and downloads nothing. Lazy, so an open panel never holds the model
+   * in memory until someone asks for it.
+   */
+  const baseSession = async (): Promise<LemmaLanguageModelSession | null> => {
+    if (base) return base;
+    const lm = api();
+    if (!lm || (await lm.availability(LANGUAGE)) !== 'available') return null;
+    return create(lm);
+  };
+
   /** One prompt on a fresh clone of the base session, so turns never accumulate. */
   const ask = async (prompt: string, schema: unknown): Promise<string | null> => {
-    if (!base) return null;
     const key = hash(prompt);
     if (cache.has(key)) return cache.get(key) ?? null;
-    const session = await base.clone();
+    let session: LemmaLanguageModelSession;
+    try {
+      const b = await baseSession();
+      if (!b) return null;
+      session = await b.clone();
+    } catch {
+      return null;
+    }
     try {
       const window = session.contextWindow ?? Infinity;
       const used =
@@ -71,15 +108,7 @@ export function geminiNano(): LlmPort {
     async enable(onProgress) {
       const lm = api();
       if (!lm) throw new Error('This browser does not provide the Prompt API.');
-      base ??= await lm.create({
-        ...LANGUAGE,
-        initialPrompts: [{ role: 'system', content: SYSTEM_PROMPT }],
-        monitor(m) {
-          m.addEventListener('downloadprogress', (e) => {
-            onProgress(e.loaded);
-          });
-        },
-      });
+      await create(lm, onProgress);
       onProgress(1);
     },
     async suggestRoles(input) {

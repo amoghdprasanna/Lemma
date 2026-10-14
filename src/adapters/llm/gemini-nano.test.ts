@@ -63,6 +63,29 @@ describe('geminiNano', () => {
     ).resolves.toBeNull();
   });
 
+  it('reopens the session on first use when the model is already downloaded', async () => {
+    const { lm, session } = installLanguageModel('{"explanation":"ok"}', {
+      availability: 'available',
+    });
+    const llm = geminiNano();
+    await expect(llm.availability()).resolves.toBe('available');
+    expect(lm.create).not.toHaveBeenCalled();
+    const input = { title: 't', card: 'c', message: 'm', snippet: 's' };
+    await Promise.all([llm.explain(input), llm.explain({ ...input, snippet: 's2' })]);
+    expect(lm.create).toHaveBeenCalledTimes(1);
+    expect(session.prompt).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns nothing and retries later when opening the session fails', async () => {
+    const { lm } = installLanguageModel('{"explanation":"ok"}', { availability: 'available' });
+    lm.create.mockImplementationOnce(() => Promise.reject(new Error('out of memory')));
+    const llm = geminiNano();
+    const input = { title: 't', card: 'c', message: 'm', snippet: 's' };
+    await expect(llm.explain(input)).resolves.toBeNull();
+    await expect(llm.explain({ ...input, snippet: 's2' })).resolves.toBe('ok');
+    expect(lm.create).toHaveBeenCalledTimes(2);
+  });
+
   it('explains with structured output, filters, and caches by prompt', async () => {
     const { session, prompts } = installLanguageModel(
       '{"explanation":"Your label comes before the caption."}',
