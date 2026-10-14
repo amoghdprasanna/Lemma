@@ -157,3 +157,4 @@ web-ext.config.ts
 
 # Real papers for local manual testing only. Never commit unpublished work.
 tests/private/
+tests/e2e/mock-overleaf/dist/

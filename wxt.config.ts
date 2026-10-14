@@ -22,7 +22,9 @@ export default defineConfig({
     description:
       'Structure-first LaTeX assistant for Overleaf. Runs entirely in your browser; your paper never leaves it.',
     minimum_chrome_version: '116',
-    permissions: ['sidePanel'],
+    permissions: ['sidePanel', 'storage'],
+    // Only to read which Overleaf project a tab shows; no other site is touched.
+    host_permissions: ['https://*.overleaf.com/*'],
     action: {
       default_title: 'Open Lemma',
       // Packaged faces come from `npm run icons`; the background swaps faces live per tab.

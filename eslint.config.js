@@ -35,7 +35,14 @@ const CORE_IMPORT_PATTERNS = [
 
 export default defineConfig(
   {
-    ignores: ['.output/', '.wxt/', 'coverage/', 'playwright-report/', 'test-results/'],
+    ignores: [
+      '.output/',
+      '.wxt/',
+      'coverage/',
+      'playwright-report/',
+      'test-results/',
+      'tests/e2e/mock-overleaf/dist/',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
@@ -55,6 +62,8 @@ export default defineConfig(
     plugins: { 'react-hooks': reactHooks },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // `onClick={() => c.closePreview()}` is idiomatic React.
+      '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
       'no-restricted-globals': ['error', ...NETWORK_GLOBALS],
       'no-restricted-properties': [
         'error',

@@ -21,7 +21,7 @@ test('side panel page renders with no network requests and no console errors', a
   await page.goto(`chrome-extension://${extensionId}/sidepanel.html`);
 
   await expect(page.getByRole('heading', { level: 1, name: 'Lemma' })).toBeVisible();
-  await expect(page.getByRole('main')).toBeVisible();
+  await expect(page.getByRole('tabpanel')).toBeVisible();
   const mascot = page.getByRole('button', { name: 'Say hi to Lemma' });
   await expect(mascot).toBeVisible();
   await mascot.click();
