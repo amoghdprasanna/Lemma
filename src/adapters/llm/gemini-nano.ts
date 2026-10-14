@@ -1,4 +1,4 @@
-import { filterExplanation, parseRoleSuggestion } from '@/src/core/llm/filter';
+import { filterExplanation, parseRoleSuggestion, parseTopicAnswer } from '@/src/core/llm/filter';
 import {
   EXPLANATION_SCHEMA,
   explainPrompt,
@@ -6,6 +6,8 @@ import {
   ROLE_SCHEMA,
   rolePrompt,
   SYSTEM_PROMPT,
+  TOPIC_SCHEMA,
+  topicPrompt,
 } from '@/src/core/llm/prompts';
 import { hash } from '@/src/core/model/text';
 import type { LlmAvailability, LlmPort } from '@/src/ports/llm';
@@ -95,6 +97,10 @@ export function geminiNano(): LlmPort {
       if (raw === null) return null;
       const r = filterExplanation(raw);
       return r.ok ? r.text : null;
+    },
+    async askTopic(input) {
+      const raw = await ask(topicPrompt(input), TOPIC_SCHEMA);
+      return raw === null ? null : parseTopicAnswer(raw);
     },
   };
 }

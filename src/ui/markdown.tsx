@@ -44,6 +44,11 @@ function inline(text: string, keyBase: string): ReactNode[] {
   return out;
 }
 
+/** One line of inline Markdown (code, emphasis, links), without block structure. */
+export function InlineMarkdown({ text }: { text: string }) {
+  return <>{inline(text, 'i')}</>;
+}
+
 export function Markdown({ source }: { source: string }) {
   const lines = source.split('\n');
   const blocks: ReactNode[] = [];

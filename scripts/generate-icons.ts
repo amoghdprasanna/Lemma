@@ -8,12 +8,12 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { encodePng } from '../src/mascot/png.ts';
-import { ICON_EXPRESSION, ICON_SIZES, rasterize } from '../src/mascot/sprite.ts';
+import { ICON_EXPRESSION, ICON_SIZES, iconLook, rasterize } from '../src/mascot/sprite.ts';
 
 const outDir = path.resolve(import.meta.dirname, '../public/icon');
 mkdirSync(outDir, { recursive: true });
 for (const size of ICON_SIZES) {
   const file = path.join(outDir, `${String(size)}.png`);
-  writeFileSync(file, encodePng(rasterize(ICON_EXPRESSION, size), size, size));
+  writeFileSync(file, encodePng(rasterize(ICON_EXPRESSION, size, iconLook(size)), size, size));
   console.log(`wrote ${path.relative(process.cwd(), file)}`);
 }

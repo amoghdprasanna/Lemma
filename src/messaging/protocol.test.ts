@@ -9,7 +9,21 @@ describe('protocol', () => {
     expect(parseMessage(msg)).toEqual(msg);
   });
 
+  it('accepts a mascot mood from the panel', () => {
+    const msg = makeMessage('mascot/mood', { tabId: 7, mood: 'thinking', still: false });
+    expect(parseMessage(msg)).toEqual(msg);
+  });
+
   it.each([
+    [
+      'a mascot mood for a bogus tab',
+      {
+        ns: 'lemma',
+        v: PROTOCOL_VERSION,
+        type: 'mascot/mood',
+        payload: { tabId: -1, mood: 'thinking', still: false },
+      },
+    ],
     ['null', null],
     ['a string', 'tab/hello'],
     [

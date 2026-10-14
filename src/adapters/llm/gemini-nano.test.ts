@@ -104,6 +104,24 @@ describe('geminiNano', () => {
     ).resolves.toEqual({ roles: ['methods'], confidence: 0.7 });
   });
 
+  it('answers topic questions with structured output, grounded in the notes', async () => {
+    const { prompts } = installLanguageModel(
+      '{"onTopic":true,"answer":"Use \\\\eqref so the number gets parentheses."}',
+    );
+    const llm = geminiNano();
+    await llm.enable(() => undefined);
+    await expect(
+      llm.askTopic({
+        question: 'When should I use eqref?',
+        notes: [{ title: 'Why \\eqref', text: 'It prints (3).' }],
+      }),
+    ).resolves.toEqual({ kind: 'answer', text: 'Use \\eqref so the number gets parentheses.' });
+    expect(prompts[0]?.input).toContain('It prints (3).');
+    expect(prompts[0]?.options).toMatchObject({
+      responseConstraint: { required: ['onTopic', 'answer'] },
+    });
+  });
+
   it('skips prompts that would overflow the context window', async () => {
     const { session } = installLanguageModel('{"explanation":"ok"}', { window: 120 });
     const llm = geminiNano();

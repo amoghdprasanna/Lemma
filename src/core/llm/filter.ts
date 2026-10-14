@@ -5,12 +5,27 @@ import { isRole, type Role } from '../structure/roles';
  * drafted paper content, or that is not the shape we asked for, is dropped
  * and the UI falls back to the curated card text.
  */
-const DRAFTING = [
-  /\\(?:sub)*section\*?\s*\{|\\begin\s*\{|\\cite\w*\s*\{|\\label\s*\{|\\maketitle/,
+
+/** Text that reads like text written for the paper rather than about it. */
+const PROSE_DRAFTING = [
   /\b(?:here(?:'s| is) (?:a|an|the|your) (?:revised|rewritten|improved|new|possible|suggested)|you (?:could|can|might|should) (?:write|say|phrase|rephrase|reword)|suggested (?:text|wording|sentence|abstract|paragraph)|(?:revised|rewritten) (?:version|text|abstract|paragraph)|rewrite (?:it|this|the) as)\b/i,
   /\bwe (?:show|demonstrate|propose|present|prove|derive|report|introduce|obtain)\b/i,
   /\bin this (?:paper|work|letter|article),? we\b/i,
   /```/,
+];
+
+const DRAFTING = [
+  /\\(?:sub)*section\*?\s*\{|\\begin\s*\{|\\cite\w*\s*\{|\\label\s*\{|\\maketitle/,
+  ...PROSE_DRAFTING,
+];
+
+/**
+ * Topic answers may show how a command is used (`\label{eq:x}`, `\begin{equation}`),
+ * so only paper scaffolding counts as drafting there.
+ */
+const TOPIC_DRAFTING = [
+  /\\(?:sub)*section\*?\s*\{|\\begin\s*\{\s*(?:abstract|document)\s*\}|\\maketitle/,
+  ...PROSE_DRAFTING,
 ];
 
 const MAX_CHARS = 900;
@@ -31,14 +46,39 @@ export function filterExplanation(raw: string): FilterResult {
       return { ok: false, reason: 'invalid JSON' };
     }
   }
+  return check(text, DRAFTING, MAX_CHARS, MAX_SENTENCES);
+}
+
+function check(
+  text: string,
+  drafting: readonly RegExp[],
+  maxChars: number,
+  maxSentences: number,
+): FilterResult {
   if (text.length === 0) return { ok: false, reason: 'empty' };
-  if (text.length > MAX_CHARS) return { ok: false, reason: 'too long' };
+  if (text.length > maxChars) return { ok: false, reason: 'too long' };
   const sentences = text.split(/[.!?](?:\s|$)/).filter((s) => s.trim().length > 0);
-  if (sentences.length > MAX_SENTENCES) return { ok: false, reason: 'too many sentences' };
-  for (const re of DRAFTING)
+  if (sentences.length > maxSentences) return { ok: false, reason: 'too many sentences' };
+  for (const re of drafting)
     if (re.test(text))
       return { ok: false, reason: `looks like drafted content (${re.source.slice(0, 24)}…)` };
   return { ok: true, text };
+}
+
+export type TopicResult = { kind: 'answer'; text: string } | { kind: 'off-topic' };
+
+/** Parses {"onTopic", "answer"}; null when malformed or when the answer fails the filter. */
+export function parseTopicAnswer(raw: string): TopicResult | null {
+  let parsed: { onTopic?: unknown; answer?: unknown };
+  try {
+    parsed = JSON.parse(raw) as typeof parsed;
+  } catch {
+    return null;
+  }
+  if (parsed.onTopic === false) return { kind: 'off-topic' };
+  if (parsed.onTopic !== true || typeof parsed.answer !== 'string') return null;
+  const r = check(parsed.answer.trim(), TOPIC_DRAFTING, 1000, 8);
+  return r.ok ? { kind: 'answer', text: r.text } : null;
 }
 
 export function parseRoleSuggestion(raw: string): { roles: Role[]; confidence: number } | null {

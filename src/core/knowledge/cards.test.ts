@@ -35,6 +35,16 @@ describe('learning cards', () => {
     }
   });
 
+  it('unquotes YAML single-quoted titles', () => {
+    expect(findCard('display-math')?.title.startsWith("'")).toBe(false);
+    for (const c of CARDS) expect(c.title).not.toMatch(/^'.*'$/);
+    const c = parseCard(
+      "---\nid: x\ntitle: 'It''s fine'\nstatus: rule\nsources:\n  - title: 'S'\n    url: https://e.org\n---\n\nBody",
+    );
+    expect(c.title).toBe("It's fine");
+    expect(c.sources[0]?.title).toBe('S');
+  });
+
   it('parses frontmatter and summarises', () => {
     const c = parseCard(
       '---\nid: x\ntitle: "A \\"t\\""\nstatus: rule\nsources:\n  - title: "S"\n    url: https://e.org\n---\n\nFirst para\ncontinues.\n\nSecond.',

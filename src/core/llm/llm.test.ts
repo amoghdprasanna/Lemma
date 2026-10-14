@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { filterExplanation, parseRoleSuggestion } from './filter';
-import { clip, explainPrompt, rolePrompt, ROLE_SCHEMA, SYSTEM_PROMPT } from './prompts';
+import { filterExplanation, parseRoleSuggestion, parseTopicAnswer } from './filter';
+import {
+  clip,
+  explainPrompt,
+  isDraftingRequest,
+  rolePrompt,
+  ROLE_SCHEMA,
+  SYSTEM_PROMPT,
+  topicPrompt,
+} from './prompts';
 
 describe('LLM prompts', () => {
   it('forbids writing paper content', () => {
@@ -62,5 +70,68 @@ describe('parseRoleSuggestion', () => {
     expect(parseRoleSuggestion('{"roles":["methods","dessert"],"confidence":0.8}')).toBeNull();
     expect(parseRoleSuggestion('{"roles":[]}')).toBeNull();
     expect(parseRoleSuggestion('not json')).toBeNull();
+  });
+});
+
+describe('topic questions', () => {
+  it.each([
+    'Write my abstract',
+    'Can you rewrite this paragraph so it flows better?',
+    'please draft an introduction about surface codes',
+    'Improve the caption of figure 2',
+    'How should I write my introduction for me?',
+  ])('treats "%s" as a request for paper text', (q) => {
+    expect(isDraftingRequest(q)).toBe(true);
+  });
+
+  it.each([
+    'How should I write my introduction?',
+    'What goes in a PRL abstract?',
+    'When should I use \\eqref?',
+    'Can you explain what siunitx does?',
+    'How do I fix an undefined control sequence?',
+  ])('lets "%s" through', (q) => {
+    expect(isDraftingRequest(q)).toBe(false);
+  });
+
+  it('keeps the prompt small and grounded in the notes', () => {
+    const p = topicPrompt({
+      question: 'q'.repeat(2000),
+      notes: [{ title: 'Why \\eqref', text: 'n'.repeat(5000) }],
+    });
+    expect(p).toContain('Why \\eqref');
+    expect(p.length).toBeLessThan(2000);
+    expect(topicPrompt({ question: 'x', notes: [] })).toContain('No curated note');
+  });
+
+  it('accepts an on-topic answer, including LaTeX usage examples', () => {
+    expect(
+      parseTopicAnswer(
+        JSON.stringify({
+          onTopic: true,
+          answer: 'Put \\label{eq:x} inside \\begin{equation} and cite it with \\eqref{eq:x}.',
+        }),
+      ),
+    ).toEqual({
+      kind: 'answer',
+      text: 'Put \\label{eq:x} inside \\begin{equation} and cite it with \\eqref{eq:x}.',
+    });
+  });
+
+  it('reports off-topic questions', () => {
+    expect(parseTopicAnswer('{"onTopic":false,"answer":""}')).toEqual({ kind: 'off-topic' });
+  });
+
+  it.each([
+    ['drafted prose', { onTopic: true, answer: 'In this paper, we show that the code works.' }],
+    ['a sectioning command', { onTopic: true, answer: '\\section{Results} The results…' }],
+    ['an abstract environment', { onTopic: true, answer: '\\begin{abstract} We study…' }],
+    ['a missing answer', { onTopic: true }],
+  ])('drops %s', (_label, raw) => {
+    expect(parseTopicAnswer(JSON.stringify(raw))).toBeNull();
+  });
+
+  it('drops malformed output', () => {
+    expect(parseTopicAnswer('not json')).toBeNull();
   });
 });

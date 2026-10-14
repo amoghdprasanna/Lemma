@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useController, usePanelState } from '../context';
+import { Icon } from '../Icon';
 import { Empty } from './common';
 
 export function LogView() {
@@ -13,7 +14,7 @@ export function LogView() {
       </p>
       <div className="actions">
         <button type="button" className="primary" onClick={() => void c.readLog()}>
-          Read log from Overleaf
+          <Icon name="log" /> Read log from Overleaf
         </button>
       </div>
       {log.error && (
@@ -37,47 +38,59 @@ export function LogView() {
         </button>
       </details>
       {log.source && log.entries.length === 0 && <Empty>No errors or warnings in this log.</Empty>}
-      <ul className="diags">
+      <ul className="problems">
         {log.entries.map((e, i) => {
           const explanation = ai.explanations[`log:${String(i)}`];
+          const sev = e.level === 'error' ? 'error' : e.level === 'warning' ? 'warning' : 'info';
           return (
-            <li
-              key={i}
-              className={`diag diag-${e.level === 'error' ? 'error' : e.level === 'warning' ? 'warning' : 'info'}`}
-            >
-              <div className="diag-head">
-                <span
-                  className={`badge badge-${e.level === 'error' ? 'error' : e.level === 'warning' ? 'warning' : 'info'}`}
-                >
-                  {e.level === 'typesetting' ? 'Layout' : e.level === 'error' ? 'Error' : 'Warning'}
+            <li key={i} className="problem" data-severity={sev} data-open="true">
+              <div className="problem-row">
+                <span className="problem-toggle">
+                  <Icon name={sev} className={`sev-icon sev-${sev}`} />
+                  <span className="sr-only">
+                    {e.level === 'typesetting'
+                      ? 'Layout'
+                      : e.level === 'error'
+                        ? 'Error'
+                        : 'Warning'}
+                    :{' '}
+                  </span>
+                  <span className="problem-title">
+                    {e.translation?.title ?? 'Unrecognised message'}
+                  </span>
                 </span>
-                <span className="diag-title">{e.translation?.title ?? 'Unrecognised message'}</span>
                 {e.line !== null && (
-                  <span className="muted">
-                    {e.file ?? ''} line {e.line}
+                  <span className="line-link">
+                    {e.file ? `${e.file}:` : 'Ln '}
+                    {e.line}
                   </span>
                 )}
               </div>
               {e.translation && (
-                <p className="diag-message">
+                <p className="problem-message">
                   {e.translation.explanation} <strong>Likely cause:</strong> {e.translation.cause}
                 </p>
               )}
               <pre className="raw">{e.raw}</pre>
               {explanation && (
                 <p className="ai-text">
+                  <Icon name="sparkle" />{' '}
                   {explanation.busy
                     ? 'Thinking on this device…'
                     : (explanation.text ?? 'No on-device explanation this time.')}
                 </p>
               )}
-              <div className="actions">
-                <button type="button" onClick={() => c.setTab('learn', 'compile-errors')}>
-                  Reading logs
+              <div className="toolbar">
+                <button
+                  type="button"
+                  className="tool"
+                  onClick={() => c.setTab('learn', 'compile-errors')}
+                >
+                  <Icon name="book" /> Reading logs
                 </button>
                 {ai.availability === 'available' && (
-                  <button type="button" onClick={() => void c.explainLogEntry(i)}>
-                    Explain on-device
+                  <button type="button" className="tool" onClick={() => void c.explainLogEntry(i)}>
+                    <Icon name="sparkle" /> Explain on-device
                   </button>
                 )}
               </div>
