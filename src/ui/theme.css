@@ -8,69 +8,75 @@
 :root {
   color-scheme: light dark;
 
-  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font: 'Lexend Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --radius: 4px;
-  --radius-lg: 8px;
-  --row-pad: 0.45rem 0.75rem;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --row-pad: 0.55rem 0.85rem;
 
-  /* Light Modern */
-  --bg: #f8f8f8;
+  /* Light: Oswald's sky-blue daytime, navy ink, Weenie's tan for learning. */
+  --bg: #f2f6fb;
   --surface: #ffffff;
-  --hover: #ebebeb;
+  --hover: #e6eef7;
   --input-bg: #ffffff;
-  --border: #e5e5e5;
-  --border-strong: #8f8f8f;
-  --fg: #1f1f1f;
-  --muted: #5f5f5f;
-  --accent: #005fb8;
-  --accent-hover: #0258a8;
+  --border: #dbe4ee;
+  --border-strong: #8395a9;
+  --fg: #1b2430;
+  --muted: #536274;
+  --accent: #2a8cf0;
+  --accent-hover: #1f7ad8;
   --accent-fg: #ffffff;
-  --link: #005fb8;
-  --focus: #005fb8;
-  --selected: #dce8f7;
-  --error: #c72e0f;
-  --warning: #8a5d00;
-  --warning-icon: #bf8803;
-  --info: #1a6fc4;
-  --learn: #7a3eb1;
+  --accent-soft: #dbeafc;
+  --link: #1460b8;
+  --focus: #2a8cf0;
+  --selected: #dbeafc;
+  --error: #c23530;
+  --warning: #8a5a00;
+  --warning-icon: #d18a00;
+  --info: #1460b8;
+  --learn: #9a5a1c;
+  --learn-soft: #f7ead9;
   --ok: #2b7a3d;
-  --code-bg: #efefef;
-  --add-bg: #e3f3e6;
-  --remove-bg: #fbe5e1;
-  --bubble-user: #dce8f7;
-  --scrollbar: #b8b8b8;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 4px 16px rgb(0 0 0 / 0.12);
-  --mascot-shadow: rgb(0 0 0 / 0.2);
+  --code-bg: #e9eff6;
+  --add-bg: #e1f3e5;
+  --remove-bg: #fbe3e0;
+  --bubble-user: #2a8cf0;
+  --bubble-user-fg: #ffffff;
+  --scrollbar: #b3c2d3;
+  --shadow: 0 1px 2px rgb(27 36 48 / 0.06), 0 8px 24px rgb(27 36 48 / 0.12);
+  --mascot-shadow: rgb(27 36 48 / 0.18);
 
   @media (prefers-color-scheme: dark) {
-    /* Dark Modern */
-    --bg: #181818;
-    --surface: #1f1f1f;
-    --hover: #2a2d2e;
-    --input-bg: #313131;
-    --border: #2b2b2b;
-    --border-strong: #7a7a7a;
-    --fg: #cccccc;
-    --muted: #9d9d9d;
-    --accent: #0078d4;
-    --accent-hover: #026ec1;
-    --accent-fg: #ffffff;
-    --link: #4daafc;
-    --focus: #0078d4;
-    --selected: #04395e;
-    --error: #f85149;
-    --warning: #cca700;
-    --warning-icon: #cca700;
-    --info: #4daafc;
-    --learn: #c586c0;
-    --ok: #3fb950;
-    --code-bg: #2b2b2b;
-    --add-bg: #1d3a26;
+    /* Dark: deep sea, because he is an octopus. */
+    --bg: #0e1824;
+    --surface: #152232;
+    --hover: #1d2d41;
+    --input-bg: #1a293b;
+    --border: #23354a;
+    --border-strong: #6c829a;
+    --fg: #e6eef7;
+    --muted: #a3b3c6;
+    --accent: #3d9bff;
+    --accent-hover: #5aa9ff;
+    --accent-fg: #06121f;
+    --accent-soft: #163a5f;
+    --link: #74b6ff;
+    --focus: #5aa9ff;
+    --selected: #163a5f;
+    --error: #ff7b72;
+    --warning: #f2c14e;
+    --warning-icon: #f2c14e;
+    --info: #74b6ff;
+    --learn: #e8b27c;
+    --learn-soft: #3a2a1b;
+    --ok: #5fd07a;
+    --code-bg: #1a293b;
+    --add-bg: #173a26;
     --remove-bg: #4a1f1d;
-    --bubble-user: #0e3a63;
-    --scrollbar: #4f4f4f;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.5);
+    --bubble-user: #2a6fc0;
+    --bubble-user-fg: #ffffff;
+    --scrollbar: #3a4f66;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 28px rgb(0 0 0 / 0.45);
     --mascot-shadow: rgb(0 0 0 / 0.45);
   }
 
@@ -87,8 +93,8 @@
 /* ======================================================================= */
 @layer base {
   html {
-    /* 13px, an editor's UI size; rem everywhere else honours user zoom. */
-    font-size: 81.25%;
+    /* 15px: comfortable in a narrow side panel; rem everywhere else honours user zoom. */
+    font-size: 93.75%;
     accent-color: var(--accent);
     scrollbar-color: var(--scrollbar) transparent;
     scrollbar-width: thin;
@@ -114,8 +120,8 @@
   }
 
   :focus-visible {
-    outline: 1px solid var(--focus);
-    outline-offset: -1px;
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
   }
 
   h1,
@@ -313,7 +319,7 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.85rem 0.75rem 0.35rem 0.5rem;
+    padding: 1.1rem 0.75rem 0.35rem 0.5rem;
     background: var(--bg);
   }
 
@@ -385,11 +391,14 @@
   }
 
   .tabs [role='tab'] {
-    flex: 1 1 auto;
+    position: relative;
+    flex: 1 1 0;
+    flex-direction: column;
     justify-content: center;
+    gap: 0.1rem;
     min-width: 0;
-    min-height: 2.35rem;
-    padding: 0.3rem 0.45rem;
+    min-height: 3.3rem;
+    padding: 0.35rem 0.1rem 0.3rem;
     background: none;
     border-radius: 0;
     color: var(--muted);
@@ -403,12 +412,51 @@
 
   .tabs [role='tab'][aria-selected='true'] {
     color: var(--fg);
-    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+
+  /* Active tab: a soft pill behind the icon. */
+  .tabs [role='tab'] > .icon {
+    box-sizing: content-box;
+    padding: 0.2rem 0.85rem;
+    border-radius: 999px;
+    transition: background-color 150ms ease-out;
+  }
+
+  .tabs [role='tab'][aria-selected='true'] > .icon {
+    background: var(--accent-soft);
+    color: var(--link);
+  }
+
+  .tabs [role='tab']:hover:not([aria-selected='true']) > .icon {
+    background: var(--hover);
+  }
+
+  .tabs [role='tab'] > .icon {
+    width: 1.35rem;
+    height: 1.35rem;
   }
 
   .tab-label {
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .tabs [role='tab'][aria-selected='true'] .tab-label {
+    font-weight: 700;
+  }
+
+  /* The problem count sits on the Checks icon like a notification badge. */
+  .tabs .count {
+    position: absolute;
+    top: 0.2rem;
+    left: calc(50% + 0.35rem);
+    min-width: 1.15rem;
+    line-height: 1.15rem;
+    font-size: 0.72rem;
+    font-weight: 700;
   }
 
   .count {
@@ -428,19 +476,37 @@
     color: var(--accent-fg);
   }
 
-  /* Narrow panel: icons only, except the active tab. Labels stay for screen readers. */
-  @container panel (max-width: 430px) {
-    .tabs [role='tab']:not([aria-selected='true']) .tab-label {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
+  /* Narrow panel: smaller mascots and tighter tabs, so labels and the file name still fit. */
+  @container panel (max-width: 380px) {
+    .oswald svg {
+      width: 3rem;
+      height: 3rem;
     }
 
-    .tabs [role='tab'][aria-selected='true'] {
-      flex-grow: 2;
+    .weenie svg {
+      width: 3.1rem;
+      height: 1.9rem;
+    }
+
+    .titlebar {
+      gap: 0.4rem;
+    }
+
+    .switch-label {
+      font-size: 0.85rem;
+    }
+
+    .tab-label {
+      font-size: 0.72rem;
+      letter-spacing: -0.01em;
+    }
+
+    .tabs {
+      padding-inline: 0.1rem;
+    }
+
+    .crumb-scope {
+      display: none;
     }
   }
 
@@ -576,12 +642,9 @@
   }
 
   .block h3 {
-    margin: 0 0 0.4rem;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--muted);
+    margin: 0 0 0.45rem;
+    font-size: 1.05rem;
+    font-weight: 600;
   }
 
   ul.plain {
@@ -661,24 +724,37 @@
     margin-bottom: 0.5rem;
   }
 
-  .problems {
+  /* Grouped list: one rounded sheet, rows divided by hairlines. */
+  .problems,
+  .outline {
     list-style: none;
-    margin: 0 -0.75rem;
+    margin: 0.4rem 0 0;
     padding: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .problems:empty {
+    display: none;
   }
 
   .problem {
-    padding: 0.35rem 0.75rem 0.5rem 0.75rem;
+    padding: 0.55rem 0.8rem 0.65rem;
+    border-inline-start: 3px solid transparent;
+  }
+
+  .problem:not(:last-child) {
     border-bottom: 1px solid var(--border);
-    border-inline-start: 2px solid transparent;
   }
 
   .problem:hover {
-    background: color-mix(in oklab, var(--hover) 60%, transparent);
+    background: color-mix(in oklab, var(--hover) 55%, var(--surface));
   }
 
   .problem[data-open='true'] {
-    background: var(--surface);
+    background: color-mix(in oklab, var(--accent-soft) 35%, var(--surface));
   }
 
   .problem:focus-within {
@@ -798,24 +874,6 @@
     color: var(--fg);
   }
 
-  .all-clear {
-    display: grid;
-    justify-items: center;
-    gap: 0.25rem;
-    padding: 2rem 0;
-    color: var(--ok);
-  }
-
-  .all-clear .icon {
-    width: 2rem;
-    height: 2rem;
-  }
-
-  .all-clear p {
-    margin: 0;
-    color: var(--muted);
-  }
-
   .file-group > summary {
     display: flex;
     align-items: center;
@@ -842,14 +900,11 @@
   }
 
   /* ---------- outline ---------- */
-  .outline {
-    list-style: none;
-    margin: 0 -0.75rem;
-    padding: 0;
+  .unit {
+    padding: 0.5rem 0.8rem;
   }
 
-  .unit {
-    padding: 0.35rem 0.75rem;
+  .unit:not(:last-child) {
     border-bottom: 1px solid var(--border);
   }
 
@@ -1132,9 +1187,10 @@
 
   .bubble-user {
     justify-self: end;
-    padding: 0.4rem 0.7rem;
-    border-radius: 12px 12px 3px 12px;
+    padding: 0.45rem 0.8rem;
+    border-radius: 16px 16px 4px 16px;
     background: var(--bubble-user);
+    color: var(--bubble-user-fg);
   }
 
   .bubble-lemma {
@@ -1152,7 +1208,7 @@
     flex: 1;
     min-width: 0;
     padding: 0.45rem 0.7rem;
-    border-radius: 3px 12px 12px 12px;
+    border-radius: 4px 16px 16px 16px;
     background: var(--surface);
     border: 1px solid var(--border);
   }
@@ -1442,7 +1498,133 @@
     box-shadow: var(--shadow);
   }
 
-  /* ---------- mascot: 2.5D, rubber-hose motion ---------- */
+  /* ---------- header switch ---------- */
+  .switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex: none;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .switch input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  .switch-track {
+    position: relative;
+    width: 2.3rem;
+    height: 1.35rem;
+    border-radius: 999px;
+    background: var(--border-strong);
+    transition: background-color 150ms ease-out;
+  }
+
+  .switch-thumb {
+    position: absolute;
+    top: 0.175rem;
+    left: 0.175rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+    transition: translate 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .switch input:checked + .switch-track {
+    background: var(--accent);
+  }
+
+  .switch input:checked + .switch-track .switch-thumb {
+    translate: 0.95rem 0;
+  }
+
+  .switch input:focus-visible + .switch-track {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .switch-label {
+    font-size: 0.92rem;
+    font-weight: 500;
+  }
+
+  /* ---------- checks: heading, filters, empty state ---------- */
+  .view-title {
+    margin: 0.15rem 0 0.55rem;
+    font-size: 1.2rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .filter {
+    min-height: 2rem;
+    padding: 0.15rem 0.7rem;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+
+  .filter:hover:not(:disabled) {
+    background: var(--hover);
+  }
+
+  .filter[aria-pressed='true'] {
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg);
+  }
+
+  .filter[aria-pressed='true'] .icon {
+    color: inherit;
+  }
+
+  .filter-count {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    opacity: 0.75;
+  }
+
+  .all-clear {
+    display: grid;
+    justify-items: center;
+    gap: 0.2rem;
+    padding: 1.75rem 1rem;
+    text-align: center;
+  }
+
+  .all-clear p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .all-clear .all-clear-title {
+    margin-top: 0.4rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--fg);
+  }
+
+  .footnote {
+    margin: 0.75rem 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  /* ---------- mascots: Oswald and Weenie, bouncy cartoon motion ---------- */
   .mascot {
     min-height: 0;
     padding: 0;
@@ -1459,6 +1641,29 @@
     overflow: visible;
   }
 
+  .mascots {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.1rem;
+    flex: none;
+  }
+
+  .oswald svg {
+    width: 3.7rem;
+    height: 3.7rem;
+  }
+
+  .weenie {
+    position: relative;
+    align-self: flex-end;
+    margin-bottom: 0.1rem;
+  }
+
+  .weenie svg {
+    width: 3.9rem;
+    height: 2.35rem;
+  }
+
   .m-shadow {
     fill: var(--mascot-shadow);
     transform-box: fill-box;
@@ -1473,7 +1678,7 @@
 
   /* Leans toward the pointer with a little overshoot. */
   .m-lean {
-    rotate: calc(var(--lean, 0) * 8deg);
+    rotate: calc(var(--lean, 0) * 10deg);
     transition: rotate 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
@@ -1513,11 +1718,11 @@
       scale: 1.16 0.82;
     }
     38% {
-      translate: 0 -22%;
-      scale: 0.86 1.16;
+      translate: 0 -14%;
+      scale: 0.88 1.12;
     }
     52% {
-      translate: 0 -26%;
+      translate: 0 -17%;
       scale: 1 1;
     }
     76% {
@@ -1545,11 +1750,11 @@
       rotate: 0deg;
     }
     38% {
-      translate: 0 -26%;
+      translate: 0 -17%;
       scale: 0.9 1.1;
     }
     64% {
-      translate: 0 -20%;
+      translate: 0 -13%;
       scale: 1 1;
       rotate: 360deg;
     }
@@ -1617,6 +1822,163 @@
     }
   }
 
+  /* Oswald: tentacles wiggle, the hat tips on hover. */
+  .o-legs {
+    transform-box: fill-box;
+    transform-origin: 50% 0;
+    animation: o-wiggle 1.4s ease-in-out infinite alternate;
+  }
+
+  .o-hat {
+    transform-box: fill-box;
+    transform-origin: 10% 100%;
+    transition:
+      rotate 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      translate 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .oswald[data-hover='true'] .o-hat {
+    rotate: -18deg;
+    translate: 0 -12%;
+  }
+
+  @keyframes o-wiggle {
+    from {
+      scale: 1 1;
+    }
+    to {
+      scale: 1.05 0.94;
+    }
+  }
+
+  /* Weenie: wags, barks with a hop, sniffs while Lemma thinks. */
+  .w-tail {
+    transform-box: view-box;
+    animation: w-wag 0.9s ease-in-out infinite alternate;
+  }
+
+  .weenie:hover .w-tail,
+  .weenie[data-excited='true'] .w-tail,
+  .weenie[data-mood='bark'] .w-tail {
+    animation-duration: 0.18s;
+  }
+
+  .w-body {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+
+  .weenie[data-mood='bark'] .w-body {
+    animation: w-hop 480ms ease-out;
+  }
+
+  .w-head {
+    transform-box: view-box;
+    transform-origin: 26px 32px;
+  }
+
+  .weenie[data-mood='sniff'] .w-head {
+    animation: w-sniff 0.7s ease-in-out infinite;
+  }
+
+  .w-ear {
+    transform-box: fill-box;
+    transform-origin: 20% 0;
+  }
+
+  .weenie[data-mood='bark'] .w-ear {
+    animation: w-flop 480ms ease-out;
+  }
+
+  .woof {
+    position: absolute;
+    bottom: 100%;
+    left: -0.2rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px 999px 999px 3px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    color: var(--fg);
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+    pointer-events: none;
+    animation: woof 1.1s ease-out forwards;
+  }
+
+  @keyframes w-wag {
+    from {
+      rotate: -14deg;
+    }
+    to {
+      rotate: 16deg;
+    }
+  }
+
+  @keyframes w-hop {
+    0% {
+      translate: 0 0;
+      scale: 1 1;
+    }
+    20% {
+      scale: 1.08 0.9;
+    }
+    50% {
+      translate: 0 -30%;
+      scale: 0.96 1.06;
+    }
+    80% {
+      translate: 0 0;
+      scale: 1.06 0.94;
+    }
+    100% {
+      scale: 1 1;
+    }
+  }
+
+  @keyframes w-sniff {
+    0%,
+    100% {
+      rotate: 0deg;
+    }
+    50% {
+      rotate: -7deg;
+    }
+  }
+
+  @keyframes w-flop {
+    0%,
+    100% {
+      rotate: 0deg;
+    }
+    50% {
+      rotate: -35deg;
+    }
+  }
+
+  @keyframes woof {
+    0% {
+      opacity: 0;
+      translate: 0 0.4rem;
+      scale: 0.6;
+    }
+    15% {
+      opacity: 1;
+      translate: 0 0;
+      scale: 1.1;
+    }
+    25% {
+      scale: 1;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      translate: 0 -0.3rem;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .m-lean,
     .chevron {
@@ -1625,9 +1987,19 @@
 
     .mascot .m-body,
     .mascot .m-shadow,
+    .o-legs,
+    .w-tail,
+    .w-body,
+    .w-head,
+    .w-ear,
+    .woof,
     .typing span,
     .spinner {
       animation: none !important;
+    }
+
+    .o-hat {
+      transition: none;
     }
   }
 }

@@ -62,14 +62,14 @@ To read compile errors, open Overleaf's logs (next to Recompile) and choose the 
 
 ## Scripts
 
-| Command                 | What it does                                                |
-| ----------------------- | ----------------------------------------------------------- |
-| `npm run dev`           | Dev build with reload                                       |
-| `npm run build`         | Production build to `.output/chrome-mv3`                    |
-| `npm run check`         | Typecheck, lint, format check, unit tests                   |
-| `npm run test:coverage` | Unit tests with coverage thresholds                         |
-| `npm run test:e2e`      | Playwright tests against the build and a mock Overleaf page |
-| `npm run icons`         | Regenerate `public/icon/*.png` from the mascot sprite       |
+| Command                 | What it does                                                           |
+| ----------------------- | ---------------------------------------------------------------------- |
+| `npm run dev`           | Dev build with reload                                                  |
+| `npm run build`         | Production build to `.output/chrome-mv3`                               |
+| `npm run check`         | Typecheck, lint, format check, unit tests                              |
+| `npm run test:coverage` | Unit tests with coverage thresholds                                    |
+| `npm run test:e2e`      | Playwright tests against the build and a mock Overleaf page            |
+| `npm run icons`         | Regenerate `public/icon/*.png` from the mascot art (headless Chromium) |
 
 First time running e2e tests: `npx playwright install chromium`.
 
@@ -129,3 +129,7 @@ Performance: analysis runs in a worker, 500 ms after typing stops. A typical 6 K
 ## License
 
 [MIT](LICENSE) © 2026 Amogh D. Prasanna
+
+## Mascot
+
+Oswald and his dog Weenie are characters from the children's TV series _Oswald_ by Dan Yaccarino. They are used here for a personal build; Lemma is not affiliated with their rights holders. Replace the art in `src/mascot/oswald.ts` (and run `npm run icons`) before publishing the extension.

@@ -34,6 +34,7 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test"
   },
   "dependencies": {
+    "@fontsource-variable/lexend": "5.3.0",
     "@unified-latex/unified-latex-types": "1.8.4",
     "@unified-latex/unified-latex-util-arguments": "1.8.4",
     "@unified-latex/unified-latex-util-parse": "1.8.4",

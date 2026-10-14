@@ -1,8 +1,8 @@
 import { browser } from 'wxt/browser';
-import { rasterize, THINK_FRAMES, type Expression } from './sprite';
+import { HEAD_BOX, oswaldHead, paint, THINK_FRAMES, type Expression } from './oswald';
 
 /**
- * The toolbar icon is the mascot, and its face tracks the tab:
+ * The toolbar icon is Oswald's head, and his face tracks the tab:
  * - asleep: not an Overleaf project (action disabled, so Chrome also greys it)
  * - awake:  an Overleaf project; clicking opens the side panel
  * - happy:  the side panel is open on this tab
@@ -19,7 +19,7 @@ const TITLES: Record<Mood, string> = {
 
 const FACE: Record<Mood, Expression> = {
   asleep: 'asleep',
-  awake: 'awake',
+  awake: 'wink',
   happy: 'happy',
   thinking: 'think3',
 };
@@ -29,12 +29,19 @@ const TOOLBAR_SIZES = [16, 32] as const;
 
 const imageCache = new Map<Expression, Record<number, ImageData>>();
 
+/** Oswald's head at one toolbar size, drawn on an OffscreenCanvas (available in service workers). */
+function draw(expression: Expression, size: number): ImageData {
+  const canvas = new OffscreenCanvas(size, size);
+  const ctx = canvas.getContext('2d');
+  if (ctx === null) throw new Error('Lemma: no 2D canvas for the toolbar icon');
+  paint(ctx, oswaldHead(expression), size, (d) => new Path2D(d), HEAD_BOX);
+  return ctx.getImageData(0, 0, size, size);
+}
+
 function imageData(expression: Expression): Record<number, ImageData> {
   let images = imageCache.get(expression);
   if (images === undefined) {
-    images = Object.fromEntries(
-      TOOLBAR_SIZES.map((size) => [size, new ImageData(rasterize(expression, size), size, size)]),
-    );
+    images = Object.fromEntries(TOOLBAR_SIZES.map((size) => [size, draw(expression, size)]));
     imageCache.set(expression, images);
   }
   return images;
@@ -73,7 +80,7 @@ const WAKE_UP: readonly (readonly [Expression, number])[] = [
   ['blink', 0],
   ['awake', 140],
   ['blink', 700],
-  ['awake', 840],
+  ['wink', 840],
 ];
 
 /** Wakes the mascot on a tab with a short double blink. */

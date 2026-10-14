@@ -14,6 +14,7 @@ import { App } from '@/src/ui/App';
 import { ControllerContext } from '@/src/ui/context';
 import { PanelController } from '@/src/ui/controller/controller';
 import { workerAnalyzer } from '@/src/worker/client';
+import '@fontsource-variable/lexend';
 import '@/src/ui/theme.css';
 
 async function main() {

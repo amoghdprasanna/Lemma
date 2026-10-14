@@ -1,34 +1,8 @@
-import { crc32, deflateSync, inflateSync } from 'node:zlib';
+import { inflateSync } from 'node:zlib';
 
 /**
- * Minimal PNG encoder for RGBA buffers (8-bit, colour type 6, no filtering).
- * Node-only: used by scripts/generate-icons.ts and the icon freshness test.
- */
-export function encodePng(rgba: Uint8ClampedArray, width: number, height: number): Buffer {
-  const stride = width * 4;
-  const raw = Buffer.alloc((stride + 1) * height);
-  for (let y = 0; y < height; y++) {
-    // Each scanline starts with filter type 0 (None).
-    Buffer.from(rgba.buffer, rgba.byteOffset + y * stride, stride).copy(raw, y * (stride + 1) + 1);
-  }
-
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(width, 0);
-  ihdr.writeUInt32BE(height, 4);
-  ihdr.set([8, 6, 0, 0, 0], 8); // bit depth, colour type RGBA, compression, filter, interlace
-
-  return Buffer.concat([
-    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-    chunk('IHDR', ihdr),
-    chunk('IDAT', deflateSync(raw, { level: 9 })),
-    chunk('IEND', Buffer.alloc(0)),
-  ]);
-}
-
-/**
- * Decodes a PNG written by encodePng back to RGBA pixels. Compressed bytes
- * differ between zlib builds (e.g. macOS arm64 vs Linux x64), so freshness
- * checks compare pixels, not files.
+ * Reads the size and RGBA pixels of a non-interlaced 8-bit RGBA PNG (what a
+ * canvas writes). Node-only: used by the packaged-icon test.
  */
 export function decodePng(png: Buffer): { width: number; height: number; rgba: Buffer } {
   let pos = 8;
@@ -51,17 +25,35 @@ export function decodePng(png: Buffer): { width: number; height: number; rgba: B
   const stride = width * 4;
   const rgba = Buffer.alloc(stride * height);
   for (let y = 0; y < height; y++) {
-    if (raw[y * (stride + 1)] !== 0) throw new Error('Only unfiltered scanlines are supported');
-    raw.copy(rgba, y * stride, y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    const filter = raw[y * (stride + 1)];
+    const line = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    const out = y * stride;
+    for (let i = 0; i < stride; i++) {
+      const a = i >= 4 ? (rgba[out + i - 4] ?? 0) : 0; // left
+      const b = y > 0 ? (rgba[out - stride + i] ?? 0) : 0; // up
+      const c = i >= 4 && y > 0 ? (rgba[out - stride + i - 4] ?? 0) : 0; // up-left
+      const x = line[i] ?? 0;
+      rgba[out + i] =
+        (x +
+          (filter === 1
+            ? a
+            : filter === 2
+              ? b
+              : filter === 3
+                ? (a + b) >> 1
+                : filter === 4
+                  ? paeth(a, b, c)
+                  : 0)) &
+        0xff;
+    }
   }
   return { width, height, rgba };
 }
 
-function chunk(type: string, data: Buffer): Buffer {
-  const head = Buffer.alloc(8);
-  head.writeUInt32BE(data.length, 0);
-  head.write(type, 4, 'ascii');
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(crc32(Buffer.concat([head.subarray(4), data])), 0);
-  return Buffer.concat([head, data, crc]);
+function paeth(a: number, b: number, c: number): number {
+  const p = a + b - c;
+  const pa = Math.abs(p - a);
+  const pb = Math.abs(p - b);
+  const pc = Math.abs(p - c);
+  return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
 }
