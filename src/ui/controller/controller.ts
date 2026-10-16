@@ -4,6 +4,7 @@ import { diffEdits, type DiffHunk } from '@/src/core/fixes/diff';
 import { normalizeEdits, type Fix, type TextEdit } from '@/src/core/fixes/text-edit';
 import { findCard } from '@/src/core/knowledge/cards';
 import { relatedCards } from '@/src/core/knowledge/search';
+import { isRemote, parseBackend, type BackendSettings } from '@/src/core/llm/backend';
 import { isDraftingRequest, MAX_QUESTION } from '@/src/core/llm/prompts';
 import type { ProjectAnalysis, ProjectFile } from '@/src/core/project/project';
 import { forkProfile } from '@/src/core/profiles/registry';
@@ -62,6 +63,9 @@ export interface AiText {
   failure: LlmFailure | null;
 }
 
+/** Remote models see paper text only when the user allowed it (ADR-0008 point 5). */
+const documentTextAllowed = (b: BackendSettings): boolean => !isRemote(b) || b.shareDocumentText;
+
 const aiText = (r: LlmResult<string>): AiText =>
   r.ok
     ? { text: r.value, busy: false, failure: null }
@@ -75,6 +79,12 @@ export interface AiState {
   roleSuggestions: Record<string, { suggestion: RoleSuggestion | null; busy: boolean }>;
   /** The Learn tab's chat, oldest first. Lives as long as the panel. */
   chat: TopicState[];
+  /** Which model answers (ADR-0008). */
+  backend: BackendSettings;
+  /** False when a remote model may not see paper text: features that send it are hidden. */
+  documentText: boolean;
+  /** Models the connected server offers, for the picker. */
+  models: string[];
 }
 
 export interface PanelState {
@@ -108,7 +118,10 @@ export interface ControllerDeps {
   editor: EditorPort;
   storage: StoragePort;
   analyzer: Analyzer;
+  /** The model to use when there is no `llmFor`, or until stored settings are read. */
   llm: LlmPort | null;
+  /** Builds the model for a backend; without it the backend can't be changed. */
+  llmFor?: (backend: BackendSettings) => LlmPort | null;
   projectId: string | null;
   now?: () => number;
 }
@@ -119,6 +132,7 @@ const keys = (projectId: string | null) => ({
   files: `files:${projectId ?? 'unknown'}`,
 });
 
+const BACKEND_KEY = 'ai:backend';
 const THINK_DELAY_MS = 250;
 const MAX_CHAT = 30;
 const THINK_MIN_MS = 900;
@@ -145,8 +159,12 @@ export class PanelController {
   private thinkStartTimer: ReturnType<typeof setTimeout> | null = null;
   private thinkMinTimer: ReturnType<typeof setTimeout> | null = null;
   private nextTurnId = 1;
+  private llm: LlmPort | null;
+  /** Bumped on every backend change, so a slow availability check can't overwrite a newer one. */
+  private backendGeneration = 0;
 
   constructor(private readonly deps: ControllerDeps) {
+    this.llm = deps.llm;
     this.state = {
       editor: { state: 'connecting' },
       projectId: deps.projectId,
@@ -173,6 +191,9 @@ export class PanelController {
         explanations: {},
         roleSuggestions: {},
         chat: [],
+        backend: parseBackend(undefined),
+        documentText: true,
+        models: [],
       },
     };
   }
@@ -220,13 +241,14 @@ export class PanelController {
   // ------------------------------------------------------------ lifecycle
 
   async start(): Promise<void> {
-    const { storage, editor, llm } = this.deps;
+    const { storage, editor } = this.deps;
     const k = keys(this.state.projectId);
-    const [doc, profiles, prefs, files] = await Promise.all([
+    const [doc, profiles, prefs, files, backend] = await Promise.all([
       storage.get<DocRecord>('local', k.doc),
       storage.get<unknown[]>('local', 'profiles'),
       storage.get<{ learnMode?: boolean; tab?: Tab }>('local', 'prefs'),
       storage.get<ProjectFile[]>('session', k.files),
+      storage.get<unknown>('local', BACKEND_KEY),
     ]);
     this.set({
       storedSettings: doc?.settings ?? null,
@@ -245,10 +267,8 @@ export class PanelController {
       }),
     );
     editor.requestSnapshot();
-    if (llm) {
-      const availability = await llm.availability();
-      this.setAi({ availability });
-    }
+    if (this.deps.llmFor) this.useBackend(parseBackend(backend));
+    await this.checkAvailability();
   }
 
   dispose(): void {
@@ -590,25 +610,86 @@ export class PanelController {
     await this.analyze();
   }
 
-  // ------------------------------------------------------------ on-device AI
+  // ------------------------------------------------------------ AI
 
-  /** Must be called from a click: may start the model download. */
+  /** Switches to a backend at once (no await), so a click can go on to enable it. */
+  private useBackend(backend: BackendSettings): void {
+    this.backendGeneration++;
+    this.llm = this.deps.llmFor?.(backend) ?? null;
+    this.setAi({
+      backend,
+      documentText: documentTextAllowed(backend),
+      availability: 'unsupported',
+      error: null,
+      progress: null,
+      models: [],
+      explanations: {},
+      roleSuggestions: {},
+    });
+  }
+
+  private async checkAvailability(): Promise<void> {
+    const llm = this.llm;
+    const generation = this.backendGeneration;
+    if (!llm) return;
+    const availability = await llm.availability();
+    if (generation !== this.backendGeneration) return;
+    this.setAi({ availability });
+    if (availability === 'available') await this.refreshModels();
+  }
+
+  /**
+   * Saves and switches the backend. A server stays unconnected until
+   * `connectBackend` or `enableAi` runs from a click (ADR-0008 point 4).
+   */
+  async setBackend(next: BackendSettings): Promise<void> {
+    if (!this.deps.llmFor) return;
+    const backend = parseBackend(next);
+    this.useBackend(backend);
+    await Promise.all([
+      this.deps.storage.set('local', BACKEND_KEY, backend),
+      this.checkAvailability(),
+    ]);
+  }
+
+  /** Must be called from a click: saves the server settings and asks to reach it. */
+  async connectBackend(next: BackendSettings): Promise<void> {
+    if (!this.deps.llmFor) return;
+    const backend = parseBackend(next);
+    this.useBackend(backend);
+    const enabling = this.enableAi(); // first, while the click still counts
+    await Promise.all([this.deps.storage.set('local', BACKEND_KEY, backend), enabling]);
+  }
+
+  async refreshModels(): Promise<void> {
+    const llm = this.llm;
+    const generation = this.backendGeneration;
+    const models = (await llm?.models?.()) ?? [];
+    if (generation === this.backendGeneration) this.setAi({ models });
+  }
+
+  /** Must be called from a click: may start the model download or ask for permission. */
   async enableAi(): Promise<void> {
-    const llm = this.deps.llm;
+    const llm = this.llm;
+    const generation = this.backendGeneration;
     if (!llm) return;
     this.setAi({ progress: 0, error: null });
     try {
       await llm.enable((fraction) => {
-        this.setAi({ progress: fraction });
+        if (generation === this.backendGeneration) this.setAi({ progress: fraction });
       });
-      this.setAi({ availability: await llm.availability(), progress: null });
+      const availability = await llm.availability();
+      if (generation !== this.backendGeneration) return;
+      this.setAi({ availability, progress: null });
+      if (availability === 'available') await this.refreshModels();
     } catch (e) {
+      if (generation !== this.backendGeneration) return;
       this.setAi({ progress: null, error: e instanceof Error ? e.message : String(e) });
     }
   }
 
   async explain(d: Diagnostic): Promise<void> {
-    const llm = this.deps.llm;
+    const llm = this.llm;
     const snapshot = this.state.snapshot;
     if (!llm || this.state.ai.availability !== 'available' || !snapshot) return;
     const card = findCard(d.cardId);
@@ -626,7 +707,7 @@ export class PanelController {
   }
 
   async suggestRoles(unit: StructureUnit): Promise<void> {
-    const llm = this.deps.llm;
+    const llm = this.llm;
     const snapshot = this.state.snapshot;
     if (!llm || this.state.ai.availability !== 'available' || !snapshot) return;
     const set = (v: { suggestion: RoleSuggestion | null; busy: boolean }) => {
@@ -641,7 +722,7 @@ export class PanelController {
   }
 
   async explainLogEntry(index: number): Promise<void> {
-    const llm = this.deps.llm;
+    const llm = this.llm;
     const entry = this.state.log.entries[index];
     if (!llm || !entry || this.state.ai.availability !== 'available') return;
     const key = `log:${String(index)}`;
@@ -686,7 +767,7 @@ export class PanelController {
       put({ ...base, status: 'refused' });
       return;
     }
-    const llm = this.deps.llm;
+    const llm = this.llm;
     if (!llm || this.state.ai.availability !== 'available') {
       put({ ...base, status: 'notes-only' });
       return;

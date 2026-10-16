@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CARDS, findCard, type Card, type CardStatus } from '@/src/core/knowledge/cards';
+import { backendLabel, isRemote } from '@/src/core/llm/backend';
 import { MAX_QUESTION } from '@/src/core/llm/prompts';
 import { useController, usePanelState } from '../context';
 import type { TopicState } from '../controller/controller';
@@ -47,7 +48,7 @@ function Answer({ turn, aiOn }: { turn: TopicState; aiOn: boolean }) {
         <>
           <p className="answer">{turn.text}</p>
           <p className="answer-note">
-            <Icon name="sparkle" /> On-device AI can be wrong. The notes are the checked source.
+            <Icon name="sparkle" /> AI can be wrong. The notes are the checked source.
           </p>
         </>
       );
@@ -108,8 +109,9 @@ function Chat() {
             <MascotAvatar size={40} />
             <h2>Ask about LaTeX or paper writing</h2>
             <p>
-              I answer from Lemma’s notes{aiOn ? ', with Chrome’s on-device AI' : ''}. I won’t write
-              your paper or judge the physics.
+              I answer from Lemma’s notes
+              {aiOn ? `, with help from ${backendLabel(ai.backend)}` : ''}. I won’t write your paper
+              or judge the physics.
             </p>
             <div className="suggestions">
               {SUGGESTIONS.map((s) => (
@@ -186,18 +188,27 @@ function Chat() {
         <p className="composer-note">
           {aiOn ? (
             <>
-              <Icon name="sparkle" /> On-device AI · nothing leaves this computer
+              <Icon name="sparkle" /> AI: {backendLabel(ai.backend)} ·{' '}
+              {isRemote(ai.backend)
+                ? 'questions go to the server, your paper doesn’t'
+                : 'nothing leaves this computer'}
             </>
           ) : canEnable ? (
             <>
               Notes only.{' '}
               <button type="button" className="link" onClick={() => c.setTab('settings')}>
-                Turn on on-device AI
+                Turn on AI
               </button>{' '}
               for written answers.
             </>
           ) : (
-            'Notes only: Chrome’s on-device AI isn’t available here.'
+            <>
+              Notes only.{' '}
+              <button type="button" className="link" onClick={() => c.setTab('settings')}>
+                Set up AI
+              </button>{' '}
+              for written answers.
+            </>
           )}
           {ai.chat.length > 0 && (
             <button type="button" className="link clear-chat" onClick={() => c.clearChat()}>

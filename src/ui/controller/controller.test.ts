@@ -289,6 +289,67 @@ describe('PanelController', () => {
     });
   });
 
+  it('switches backends, saves the choice, and enables a server from the click', async () => {
+    const built: string[] = [];
+    const server = fakeLlm({ availability: 'downloadable' });
+    const editor = fakeEditor(DOC);
+    const storage = memoryStorage();
+    const c = new PanelController({
+      editor: editor.port,
+      storage,
+      analyzer: inlineAnalyzer(),
+      llm: null,
+      llmFor: (b) => {
+        built.push(b.kind);
+        return b.kind === 'server' ? server : b.kind === 'chrome' ? fakeLlm() : null;
+      },
+      projectId: 'p1',
+    });
+    await c.start();
+    expect(built).toEqual(['chrome']);
+    expect(c.getState().ai.backend.kind).toBe('chrome');
+
+    await c.setBackend({ ...c.getState().ai.backend, kind: 'off' });
+    expect(c.getState().ai.availability).toBe('unsupported');
+
+    const connecting = c.connectBackend({
+      ...c.getState().ai.backend,
+      kind: 'server',
+      model: 'qwen3:4b',
+    });
+    expect(server.calls).toEqual(['enable']); // before any await: the click still counts
+    await connecting;
+    expect(c.getState().ai.availability).toBe('available');
+    expect(storage.dump()['local:ai:backend']).toMatchObject({ kind: 'server', model: 'qwen3:4b' });
+    expect(built).toEqual(['chrome', 'off', 'server']);
+  });
+
+  it('hides paper-text features for a remote model unless allowed', async () => {
+    const { c } = await setup(DOC, fakeLlm({ availability: 'available' }));
+    expect(c.getState().ai.documentText).toBe(true);
+    const c2 = new PanelController({
+      editor: fakeEditor(DOC).port,
+      storage: memoryStorage(),
+      analyzer: inlineAnalyzer(),
+      llm: null,
+      llmFor: () => fakeLlm({ availability: 'available' }),
+      projectId: 'p1',
+    });
+    await c2.start();
+    const remote = {
+      ...c2.getState().ai.backend,
+      kind: 'server' as const,
+      preset: 'openrouter' as const,
+      baseUrl: 'https://openrouter.ai/api/v1',
+    };
+    await c2.setBackend(remote);
+    expect(c2.getState().ai.documentText).toBe(false);
+    await c2.setBackend({ ...remote, shareDocumentText: true });
+    expect(c2.getState().ai.documentText).toBe(true);
+    c.dispose();
+    c2.dispose();
+  });
+
   it('refuses to write paper text without asking the model', async () => {
     const { c, llm } = await setup(DOC, fakeLlm({ availability: 'available' }));
     await c.askTopic('Write my abstract');

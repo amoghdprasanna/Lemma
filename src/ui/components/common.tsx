@@ -10,23 +10,25 @@ export const SEVERITY_LABEL: Record<Severity, string> = {
   learn: 'Learn',
 };
 
-/** Why there is no on-device answer, in one sentence; null when the model wasn't asked. */
+/** Why there is no AI answer, in one sentence. */
 export function aiFailureText(failure: LlmFailure | null): string {
   switch (failure) {
     case 'not-ready':
-      return 'The on-device model isn’t running. Turn it on in Settings.';
+      return 'The AI model isn’t running. Check Settings.';
     case 'overflow':
-      return 'That was more text than the on-device model can read at once.';
+      return 'That was more text than the AI model can read at once.';
     case 'error':
-      return 'The on-device model hit an error. Try again.';
+      return 'The AI model hit an error. Try again.';
+    case 'blocked':
+      return 'Your settings keep paper text away from the remote model. You can allow it in Settings.';
     case 'malformed':
-      return 'The on-device model’s answer came back garbled.';
+      return 'The AI model’s answer came back garbled.';
     case 'drafted':
-      return 'The on-device answer read like text for your paper, so I hid it.';
+      return 'The AI answer read like text for your paper, so I hid it.';
     case 'rambling':
-      return 'The on-device answer ran too long, so I hid it.';
+      return 'The AI answer ran too long, so I hid it.';
     case null:
-      return 'No on-device answer this time.';
+      return 'No AI answer this time.';
   }
 }
 
