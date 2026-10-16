@@ -5,6 +5,7 @@ import { LearnView } from './components/LearnView';
 import { LogView } from './components/LogView';
 import { NotationView } from './components/NotationView';
 import { OutlineView } from './components/OutlineView';
+import { backendLabel } from '@/src/core/llm/backend';
 import { SettingsView } from './components/SettingsView';
 import { useController, usePanelState } from './context';
 import type { Tab } from './controller/controller';
@@ -94,11 +95,11 @@ function StatusBar() {
       <button
         type="button"
         className="status-item"
-        title="On-device AI settings"
+        title="AI settings"
         onClick={() => c.setTab('settings')}
       >
         <Icon name="sparkle" />
-        {ai.availability === 'available' ? 'AI on' : 'AI off'}
+        {ai.availability === 'available' ? `AI: ${backendLabel(ai.backend)}` : 'AI off'}
       </button>
     </footer>
   );

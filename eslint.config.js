@@ -5,9 +5,16 @@ import globals from 'globals';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
-/** Globals that would let code talk to the network (docs/adr/0004-on-device-only-ai.md). */
+/**
+ * Globals that would let code talk to the network. Only the model-server
+ * adapter may, and only to the hosts ADR-0008 lists (docs/adr/0004, 0008).
+ */
 const NETWORK_GLOBALS = ['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource', 'WebTransport'].map(
-  (name) => ({ name, message: 'Lemma makes no network requests. See docs/adr/0004.' }),
+  (name) => ({
+    name,
+    message:
+      'Only src/adapters/llm/openai-compatible.ts makes network requests. See docs/adr/0008.',
+  }),
 );
 
 /** Globals the pure core must not touch (docs/adr/0001-build-tooling.md). */
@@ -70,6 +77,11 @@ export default defineConfig(
         { object: 'navigator', property: 'sendBeacon', message: 'No network requests.' },
       ],
     },
+  },
+  {
+    // The one file that may make requests: to a model server the user chose (ADR-0008).
+    files: ['src/adapters/llm/openai-compatible.ts'],
+    rules: { 'no-restricted-globals': 'off' },
   },
   {
     // Pure functional core: no browser, no extension APIs, no adapters, no UI.

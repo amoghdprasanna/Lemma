@@ -2,7 +2,7 @@
 
 ## Ground rules
 
-- Read the ADRs in `docs/adr/` first. Two decisions are non-negotiable: Lemma never generates research content (ADR-0003), and nothing leaves the browser (ADR-0004).
+- Read the ADRs in `docs/adr/` first. Two decisions are non-negotiable: Lemma never generates research content (ADR-0003), and the paper never leaves the computer unless the user picks a remote model and allows it (ADR-0004, ADR-0008). Only `src/adapters/llm/openai-compatible.ts` may make network requests.
 - `src/core` stays pure: no DOM, no `chrome.*`, no network, no framework imports. ESLint enforces this; don't silence it.
 - Every non-obvious decision gets an ADR (`docs/adr/template.md`).
 - Never commit real, unpublished papers. Fixtures are synthetic. Put local test papers in `tests/private/`, which is git-ignored.

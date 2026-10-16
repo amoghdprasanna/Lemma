@@ -9,7 +9,7 @@ const SOURCE_LABEL: Record<StructureUnit['source'], string> = {
   alias: 'from heading',
   keyword: 'guessed from heading',
   context: 'from LaTeX',
-  llm: 'suggested on-device',
+  llm: 'suggested by AI',
   none: 'role unknown',
 };
 
@@ -93,20 +93,19 @@ function UnitRow({ unit, file }: { unit: StructureUnit; file: string | null }) {
               Roles…
             </button>
           )}
-          {unit.kind === 'section' && ai.availability === 'available' && (
+          {unit.kind === 'section' && ai.availability === 'available' && ai.documentText && (
             <button type="button" className="quiet" onClick={() => void c.suggestRoles(unit)}>
               Suggest
             </button>
           )}
         </span>
       </div>
-      {suggestion?.busy && <p className="muted">Thinking on this device…</p>}
+      {suggestion?.busy && <p className="muted">Thinking…</p>}
       {suggestion && !suggestion.busy && (
         <p className="ai-text">
           {suggestion.suggestion ? (
             <>
-              On-device suggestion:{' '}
-              {suggestion.suggestion.roles.map((r) => ROLE_INFO[r].label).join(', ')}{' '}
+              AI suggestion: {suggestion.suggestion.roles.map((r) => ROLE_INFO[r].label).join(', ')}{' '}
               <button
                 type="button"
                 className="link"

@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { browser } from 'wxt/browser';
 import { geminiNano } from '@/src/adapters/llm/gemini-nano';
+import { openAiCompatible, serverDeps } from '@/src/adapters/llm/openai-compatible';
 import { EDITOR_PORT_NAME } from '@/src/adapters/overleaf/bridge';
 import { projectIdFromUrl } from '@/src/adapters/overleaf/project-url';
 import {
@@ -46,6 +47,12 @@ async function main() {
     storage: chromeStorage(),
     analyzer: workerAnalyzer(),
     llm: geminiNano(),
+    llmFor: (backend) =>
+      backend.kind === 'chrome'
+        ? geminiNano()
+        : backend.kind === 'server'
+          ? openAiCompatible(backend, serverDeps())
+          : null,
     projectId,
   });
   window.addEventListener('unload', () => {

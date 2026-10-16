@@ -9,7 +9,7 @@ A structure-first LaTeX assistant for Overleaf, aimed at physics and quantum-inf
 
 **Lemma never writes your paper.** It inserts empty skeletons (with questions for you) and mechanical edits only, and a guard in the code rejects anything else ([ADR-0003](docs/adr/0003-no-content-generation.md)).
 
-**Your document never leaves your browser.** No telemetry, no cloud AI, no network requests ([ADR-0004](docs/adr/0004-on-device-only-ai.md)).
+**Your document stays on your computer.** No telemetry. The only network requests go to an AI model server you connect yourself; with a remote one (OpenRouter), your paper is sent only if you allow it ([ADR-0008](docs/adr/0008-ai-backends.md)).
 
 ## Features
 
@@ -43,9 +43,47 @@ Profiles are data (`src/core/profiles/builtin/*.json`). Fork one in Settings and
 
 Overleaf shows one file at a time. Lemma remembers each file you open (until the browser closes) and can import the project zip ("Download as source") locally. The main file is analysed with its `\input`s, and results are mapped back to their files. Until every file is known, a **Partial view** note says which are missing ([ADR-0005](docs/adr/0005-multi-file-projects.md)).
 
-### On-device AI (optional)
+### AI explanations (optional)
 
-With Chrome's built-in Gemini Nano (Prompt API), Lemma can explain a check in terms of your own snippet, suggest roles for sections with ambiguous headings, reword compile errors, and answer questions about LaTeX or paper writing from the Learn tab ([ADR-0007](docs/adr/0007-topic-questions.md)). It doesn't answer physics questions. It never writes paper content; every answer is filtered and falls back to the curated card. The model download (several GB) starts only when you click **Enable AI explanations**. Requirements (Chrome's): 22 GB free disk, and a GPU with more than 4 GB VRAM or 16 GB RAM with 4+ CPU cores. **English only.** Everything else works without it.
+With a language model, Lemma can explain a check in terms of your own snippet, suggest roles for sections with ambiguous headings, reword compile errors, and answer questions about LaTeX or paper writing from the Learn tab ([ADR-0007](docs/adr/0007-topic-questions.md)). It doesn't answer physics questions. It never writes paper content: whatever the model, every answer is filtered and falls back to the curated card. **English only.** Everything else works without AI.
+
+Pick the model in **Settings → AI explanations** ([ADR-0008](docs/adr/0008-ai-backends.md)):
+
+| Backend                        | Runs where                                      | Needs                                                                                                   |
+| ------------------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Model server** (recommended) | Ollama, LM Studio or llama.cpp on your computer | About 4–8 GB RAM for a 3–8B model; 8 GB laptops work                                                    |
+| **Chrome built-in** (default)  | Gemini Nano inside Chrome                       | Chrome's minimum: 22 GB free disk, and a GPU with more than 4 GB VRAM or 16 GB RAM with 4+ cores        |
+| **OpenRouter**                 | Hosted models, under your own API key           | A key from openrouter.ai. Only Ask Lemma questions are sent unless you tick "Send snippets of my paper" |
+
+Lemma can't reach any server until you press **Connect**, which asks Chrome for permission to reach that one address.
+
+#### Ollama
+
+```sh
+ollama pull qwen3:4b
+```
+
+Ollama refuses browser extensions unless you allow them, once:
+
+- **macOS:** `launchctl setenv OLLAMA_ORIGINS "chrome-extension://*"`, then quit and reopen Ollama.
+- **Linux (systemd):** `sudo systemctl edit ollama.service`, add `Environment="OLLAMA_ORIGINS=chrome-extension://*"` under `[Service]`, then `sudo systemctl restart ollama`.
+- **Windows:** set the user environment variable `OLLAMA_ORIGINS` to `chrome-extension://*`, then restart Ollama.
+
+In Lemma: Settings → AI explanations → **A model server** → Ollama → model `qwen3:4b` → **Connect**.
+
+#### LM Studio
+
+Download a model, start the server in the Developer tab (port 1234), then choose LM Studio in Lemma and **Connect**.
+
+#### llama.cpp
+
+```sh
+llama-server -hf Qwen/Qwen3-4B-GGUF:Q4_K_M --port 8080
+```
+
+Choose llama.cpp server in Lemma; the model field can stay empty, since the server has one model.
+
+Any small instruction-tuned model that follows a JSON schema works. Larger models give better answers if your machine can run them.
 
 ## Install (development build)
 
@@ -82,7 +120,7 @@ Hexagonal (ports and adapters) with a pure functional core. Everything in `src/c
 ┌───────────────────────────────┐                ┌────────────────────────────────────┐
 │ MAIN world: page hook         │                │ React UI ← PanelController         │
 │ UNSTABLE_editor:extensions +  │                │   EditorPort · StoragePort ·       │
-│ overleaf.unstable.store       │                │   LlmPort (Gemini Nano, optional)  │
+│ overleaf.unstable.store       │                │   LlmPort (Nano or server, opt.)   │
 └───────────────┬───────────────┘                └──────┬───────────────────▲─────────┘
   postMessage   │ (versioned, validated)    runtime Port│                   │ results
 ┌───────────────▼───────────────┐                ┌──────▼───────────────────┴─────────┐
@@ -92,26 +130,26 @@ Hexagonal (ports and adapters) with a pure functional core. Everything in `src/c
                                                  └────────────────────────────────────┘
 ```
 
-| Path                    | Contents                                                                                                        |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `entrypoints/`          | Thin WXT shell: background, MAIN-world hook, isolated bridge, side panel                                        |
-| `src/core/model/`       | unified-latex parsing → DocumentModel (sections, labels, refs, cites, math…)                                    |
-| `src/core/structure/`   | Roles and role inference                                                                                        |
-| `src/core/profiles/`    | Profile schema, registry, built-in profiles (JSON)                                                              |
-| `src/core/rules/`       | Rule engine, registry, one directory per rule with fixtures and tests                                           |
-| `src/core/fixes/`       | Text edits, diff preview, skeleton templates, the content guard                                                 |
-| `src/core/notation/`    | Acronyms, kets, trace, adjoints, symbols                                                                        |
-| `src/core/project/`     | Multi-file flattening with source maps                                                                          |
-| `src/core/compile-log/` | Log parser and plain-language translations                                                                      |
-| `src/core/llm/`         | Prompts and the output filter (pure)                                                                            |
-| `src/core/knowledge/`   | Learning-card loader; cards live in `knowledge/cards/*.md`                                                      |
-| `src/ports/`            | `EditorPort`, `StoragePort`, `LlmPort`                                                                          |
-| `src/adapters/`         | Overleaf (selectors, bridge, runtime port), page hook (CodeMirror / textarea), storage, Gemini Nano + fake, zip |
-| `src/worker/`           | Analysis worker and client                                                                                      |
-| `src/ui/`               | React panel and its controller                                                                                  |
-| `tests/papers/`         | Acceptance fixtures (clean REVTeX paper, Letter, custom theory paper)                                           |
-| `tests/e2e/`            | Playwright tests and the mock Overleaf page (real CodeMirror 6)                                                 |
-| `docs/adr/`             | Architecture Decision Records                                                                                   |
+| Path                    | Contents                                                                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `entrypoints/`          | Thin WXT shell: background, MAIN-world hook, isolated bridge, side panel                                                                   |
+| `src/core/model/`       | unified-latex parsing → DocumentModel (sections, labels, refs, cites, math…)                                                               |
+| `src/core/structure/`   | Roles and role inference                                                                                                                   |
+| `src/core/profiles/`    | Profile schema, registry, built-in profiles (JSON)                                                                                         |
+| `src/core/rules/`       | Rule engine, registry, one directory per rule with fixtures and tests                                                                      |
+| `src/core/fixes/`       | Text edits, diff preview, skeleton templates, the content guard                                                                            |
+| `src/core/notation/`    | Acronyms, kets, trace, adjoints, symbols                                                                                                   |
+| `src/core/project/`     | Multi-file flattening with source maps                                                                                                     |
+| `src/core/compile-log/` | Log parser and plain-language translations                                                                                                 |
+| `src/core/llm/`         | Prompts and the output filter (pure)                                                                                                       |
+| `src/core/knowledge/`   | Learning-card loader; cards live in `knowledge/cards/*.md`                                                                                 |
+| `src/ports/`            | `EditorPort`, `StoragePort`, `LlmPort`                                                                                                     |
+| `src/adapters/`         | Overleaf (selectors, bridge, runtime port), page hook (CodeMirror / textarea), storage, Gemini Nano + OpenAI-compatible server + fake, zip |
+| `src/worker/`           | Analysis worker and client                                                                                                                 |
+| `src/ui/`               | React panel and its controller                                                                                                             |
+| `tests/papers/`         | Acceptance fixtures (clean REVTeX paper, Letter, custom theory paper)                                                                      |
+| `tests/e2e/`            | Playwright tests and the mock Overleaf page (real CodeMirror 6)                                                                            |
+| `docs/adr/`             | Architecture Decision Records                                                                                                              |
 
 Performance: analysis runs in a worker, 500 ms after typing stops. A typical 6 KB paper takes about 9 ms; a 54 KB paper about 125 ms, off the main thread.
 
@@ -124,7 +162,8 @@ Performance: analysis runs in a worker, 500 ms after typing stops. A typical 6 K
 - Lemma reads Overleaf's editor through APIs Overleaf marks as unsupported. If Overleaf changes them, the panel shows "Can't read the Overleaf editor" until Lemma is updated ([ADR-0002](docs/adr/0002-overleaf-editor-access.md)).
 - Multi-file analysis only covers files you opened or imported; the Partial view note lists the rest.
 - Heuristic checks (role wording, roadmap, undefined symbols) are learning notes, not verdicts. Dismiss them with _Intentional_.
-- On-device AI is English only and needs Chrome's hardware minimum.
+- AI explanations are English only. Chrome's built-in model needs Chrome's hardware minimum; a model server needs a few GB of RAM and one-time setup.
+- Answer quality depends on the model you pick. The filter keeps answers from drafting your paper whatever the model, but small models can still be wrong.
 
 ## License
 

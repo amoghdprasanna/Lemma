@@ -76,7 +76,7 @@ export function LogView() {
                 <p className="ai-text">
                   <Icon name="sparkle" />{' '}
                   {explanation.busy
-                    ? 'Thinking on this device…'
+                    ? 'Thinking…'
                     : (explanation.text ?? aiFailureText(explanation.failure))}
                 </p>
               )}
@@ -88,9 +88,9 @@ export function LogView() {
                 >
                   <Icon name="book" /> Reading logs
                 </button>
-                {ai.availability === 'available' && (
+                {ai.availability === 'available' && ai.documentText && (
                   <button type="button" className="tool" onClick={() => void c.explainLogEntry(i)}>
-                    <Icon name="sparkle" /> Explain on-device
+                    <Icon name="sparkle" /> Explain with AI
                   </button>
                 )}
               </div>

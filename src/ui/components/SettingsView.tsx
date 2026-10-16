@@ -5,7 +5,16 @@ import { RULES } from '@/src/core/rules/registry';
 import type { Category } from '@/src/core/rules/types';
 import type { Mode } from '@/src/core/settings/types';
 import { readZip } from '@/src/adapters/zip/read-zip';
+import {
+  checkServerUrl,
+  findPreset,
+  SERVER_PRESETS,
+  type BackendKind,
+  type BackendSettings,
+  type ServerPresetId,
+} from '@/src/core/llm/backend';
 import { useController, usePanelState } from '../context';
+import { InlineMarkdown } from '../markdown';
 import { Empty, Section } from './common';
 import { ProfileEditor } from './ProfileEditor';
 
@@ -25,40 +34,186 @@ const CATEGORY: Record<Category, string> = {
   citations: 'Citations',
 };
 
-function AiSettings() {
+const BACKEND_TEXT: Record<BackendKind, [string, string]> = {
+  chrome: ['Chrome built-in', 'Gemini Nano, if Chrome offers it on this device.'],
+  server: [
+    'A model server',
+    'Ollama, LM Studio or llama.cpp on this computer (runs on 8 GB laptops), or OpenRouter.',
+  ],
+  off: ['Off', 'Checks, fixes and notes all work without AI.'],
+};
+
+function ChromeModel() {
   const c = useController();
   const { ai } = usePanelState();
   const text: Record<typeof ai.availability, string> = {
     unsupported:
-      'This browser does not offer Chrome’s built-in AI (Prompt API). Everything else in Lemma works without it.',
+      'This browser does not offer Chrome’s built-in AI (Prompt API). Try a model server instead.',
     unavailable:
-      'Chrome’s on-device model is not available on this device (it needs 22 GB free disk and either a GPU with more than 4 GB memory or 16 GB RAM). Everything else works without it.',
+      'Chrome’s on-device model is not available on this device (it needs 22 GB free disk and either a GPU with more than 4 GB memory or 16 GB RAM). A model server needs much less.',
     downloadable:
       'Chrome can download its on-device model (several GB, once). Lemma never starts the download unless you click below.',
     downloading: 'Chrome is downloading the on-device model.',
-    available:
-      'On-device explanations are on. Your text is processed by Chrome’s local model and never leaves this computer.',
+    available: 'On. Your text is processed by Chrome’s local model and never leaves this computer.',
   };
   return (
-    <Section title="On-device AI explanations (optional)">
+    <>
       <p>{text[ai.availability]}</p>
-      <p className="muted">
-        Used only to explain checks in terms of your text, suggest section roles and reword compile
-        errors. It never writes your paper, and every answer is filtered. English only.
-      </p>
       {ai.progress !== null && (
         <p>
           <progress value={ai.progress} max={1} aria-label="Model download progress" />{' '}
           {Math.round(ai.progress * 100)}%
         </p>
       )}
-      {ai.error && <p className="error">{ai.error}</p>}
       {(ai.availability === 'downloadable' || ai.availability === 'downloading') &&
         ai.progress === null && (
           <button type="button" className="primary" onClick={() => void c.enableAi()}>
             Enable AI explanations
           </button>
         )}
+    </>
+  );
+}
+
+/** Server settings are a draft until Connect, so typing never sends a request. */
+function ServerModel() {
+  const c = useController();
+  const { ai } = usePanelState();
+  const [draft, setDraft] = useState<BackendSettings>(ai.backend);
+  const preset = findPreset(draft.preset);
+  const url = checkServerUrl(draft.baseUrl);
+  const remote = url.ok && url.remote;
+  const saved = ai.backend;
+  const connected =
+    ai.availability === 'available' && JSON.stringify(draft) === JSON.stringify(saved);
+  const set = (patch: Partial<BackendSettings>) => setDraft({ ...draft, ...patch });
+
+  return (
+    <>
+      <label className="field">
+        Server{' '}
+        <select
+          value={draft.preset}
+          onChange={(e) => {
+            const p = findPreset(e.target.value as ServerPresetId);
+            set({ preset: p.id, baseUrl: p.baseUrl, model: '' });
+          }}
+        >
+          {SERVER_PRESETS.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <p className="muted">
+        <InlineMarkdown text={preset.setup} />
+      </p>
+      <label className="field">
+        Address{' '}
+        <input
+          type="url"
+          value={draft.baseUrl}
+          spellCheck={false}
+          onChange={(e) => set({ baseUrl: e.target.value })}
+        />
+      </label>
+      {!url.ok && <p className="error">{url.reason}</p>}
+      <label className="field">
+        Model{' '}
+        <input
+          type="text"
+          list="lemma-models"
+          value={draft.model}
+          placeholder={preset.exampleModel}
+          spellCheck={false}
+          onChange={(e) => set({ model: e.target.value })}
+        />
+        <datalist id="lemma-models">
+          {ai.models.map((m) => (
+            <option key={m} value={m} />
+          ))}
+        </datalist>
+      </label>
+      {remote && (
+        <>
+          <label className="field">
+            API key{' '}
+            <input
+              type="password"
+              value={draft.apiKey}
+              autoComplete="off"
+              onChange={(e) => set({ apiKey: e.target.value })}
+            />
+          </label>
+          <p className="muted">
+            Stored unencrypted in this browser’s extension storage. Ask Lemma questions never
+            include your paper.
+          </p>
+          <label className="inline">
+            <input
+              type="checkbox"
+              checked={draft.shareDocumentText}
+              onChange={(e) => set({ shareDocumentText: e.target.checked })}
+            />{' '}
+            Send snippets of my paper and compile log to {preset.label.replace(' (remote)', '')}{' '}
+            (for “Explain for my text”, role suggestions and log explanations)
+          </label>
+        </>
+      )}
+      <div className="actions">
+        <button
+          type="button"
+          className="primary"
+          disabled={!url.ok || ai.progress !== null}
+          onClick={() => void c.connectBackend(draft)}
+        >
+          {ai.progress !== null ? 'Connecting…' : connected ? 'Reconnect' : 'Connect'}
+        </button>
+      </div>
+      {connected && (
+        <p>
+          Connected{saved.model ? ` to ${saved.model}` : ''}.{' '}
+          {remote
+            ? `Requests go to ${url.url.host} under your key.`
+            : 'Your text stays on this computer.'}
+        </p>
+      )}
+      {!connected && ai.availability === 'unavailable' && !ai.error && (
+        <p className="error">Can’t use this server right now. Press Connect to see why.</p>
+      )}
+    </>
+  );
+}
+
+function AiSettings() {
+  const c = useController();
+  const { ai } = usePanelState();
+  return (
+    <Section title="AI explanations (optional)">
+      <fieldset className="radios">
+        <legend className="sr-only">Which model answers</legend>
+        {(Object.keys(BACKEND_TEXT) as BackendKind[]).map((k) => (
+          <label key={k}>
+            <input
+              type="radio"
+              name="ai-backend"
+              checked={ai.backend.kind === k}
+              onChange={() => void c.setBackend({ ...ai.backend, kind: k })}
+            />{' '}
+            <strong>{BACKEND_TEXT[k][0]}</strong>{' '}
+            <span className="muted">{BACKEND_TEXT[k][1]}</span>
+          </label>
+        ))}
+      </fieldset>
+      {ai.backend.kind === 'chrome' && <ChromeModel />}
+      {ai.backend.kind === 'server' && <ServerModel key={JSON.stringify(ai.backend)} />}
+      {ai.error && <p className="error">{ai.error}</p>}
+      <p className="muted">
+        Used to explain checks in terms of your text, suggest section roles, reword compile errors
+        and answer questions in Learn. It never writes your paper, and every answer is filtered.
+        English only.
+      </p>
     </Section>
   );
 }
@@ -247,9 +402,10 @@ export function SettingsView() {
 
       <Section title="Privacy">
         <p className="muted">
-          Lemma runs entirely in your browser. It makes no network requests, has no telemetry, and
-          never writes your paper: fixes are mechanical edits or empty skeletons, always previewed
-          and undoable.
+          Lemma runs on your computer and has no telemetry. Its only network requests go to a model
+          server you connect above; with a remote one, your paper is sent only if you allow it.
+          Lemma never writes your paper: fixes are mechanical edits or empty skeletons, always
+          previewed and undoable.
         </p>
       </Section>
     </div>

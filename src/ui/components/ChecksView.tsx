@@ -81,7 +81,7 @@ function DiagnosticItem({ d, openFile }: { d: Diagnostic; openFile: boolean }) {
           )}
           {explanation?.busy && (
             <p className="ai-text" aria-live="polite">
-              <Icon name="sparkle" /> Thinking on this device…
+              <Icon name="sparkle" /> Thinking…
             </p>
           )}
           {explanation && !explanation.busy && (
@@ -104,7 +104,7 @@ function DiagnosticItem({ d, openFile }: { d: Diagnostic; openFile: boolean }) {
             <button type="button" className="tool" onClick={() => c.setTab('learn', d.cardId)}>
               <Icon name="book" /> Learn more
             </button>
-            {ai.availability === 'available' && (
+            {ai.availability === 'available' && ai.documentText && (
               <button type="button" className="tool" onClick={() => void c.explain(d)}>
                 <Icon name="sparkle" /> Explain for my text
               </button>
